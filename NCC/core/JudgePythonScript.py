@@ -22,6 +22,7 @@ outputFile = open(outputFilePath,"w+")
 errorFile = open(errorFilePath,"w+")
 returnCodeFile = open(returnCodeFilePath,"w+")
 
+CONTAINER_NAME="container1"
 
 #Limiting Resources 
 def setLimit():
@@ -54,27 +55,32 @@ ErrorCodes={
 }
 
 def run_python():
-    cmd = f"python3 {pyCodeFile}"
+    # cmd = f"python3 {pyCodeFile}"  #1
+    cmd  = f"sudo docker exec {CONTAINER_NAME} sh -c ' python3 src/pyCode.py < src/input.txt'"
     subprocessOutput = subprocess.Popen(
                 cmd,
                 shell=True,
                 preexec_fn=setLimit(),
-                stdin=inputFile,
+                # stdin=inputFile,
                 stdout=outputFile,
                 stderr=errorFile,
                 text=True,
             )
 
     subprocessOutput.wait()
+    print("******return code in judge python script*****")
     returnCode = subprocessOutput.returncode
-    # print(returnCode)
+    print("return code ",returnCode)
+    print("subproces ",subprocessOutput)
+    print("srgs ",subprocessOutput.args)
     # print(ErrorCodes[returnCode])
     returnCodeFile.write(str(returnCode))
 
 
 def run_cpp():
-    cmd = r"g++ " + f"{cppCodeFile}" + f" -o {directoryName}/cppExeFile"
-    # cmd = r"g++" + f"{cppCodeFile}" + f" -o {directoryName}/cppExeFile"
+    # cmd = r"g++" + f"{cppCodeFile}" + f" -o {directoryName}/cppExeFile"  #1
+    # cmd = r"g++ " + f"{cppCodeFile}" + f" -o {directoryName}/cppExeFile"  #2
+    cmd = r"g++ " + f"{cppCodeFile}" + f" -o {directoryName}/cppExeFile"  #3
     subprocessCppExe = subprocess.Popen(cmd, shell=True, stderr=errorFile)
     subprocessCppExe.wait()
     if subprocessCppExe.returncode == 0:
