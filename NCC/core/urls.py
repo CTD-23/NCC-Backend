@@ -10,6 +10,6 @@ router.register(r'submit', Submit,basename='submit')
 router.register(r'submissions', GetSubmissions,basename='submissions')
 
 urlpatterns = [
-    # path('home/', home,name="home"),
+    path('home/', home,name="home"),
     path('api/', include(router.urls)),
 ]

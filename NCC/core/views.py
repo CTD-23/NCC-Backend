@@ -3,6 +3,7 @@ from rest_framework.generics import mixins
 from .models import *
 from .serializers import *
 from django.views import View
+from django.shortcuts import redirect,HttpResponse
 from django.http import JsonResponse
 from rest_framework.response import Response
 from rest_framework.parsers import JSONParser
@@ -12,7 +13,37 @@ from django.db.models import Q
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.renderers import JSONRenderer
 from .judgeUtils import *
-import datetime
+import datetime 
+
+
+def home(request):
+    '''To check redirection'''
+    codeDict = {
+        1:"Redirected After time end",
+    }
+    return HttpResponse(codeDict[1])
+
+class TimeCheckMixin:
+    '''Class to handle time end
+    by invoking dispatch method where it is inherited
+    '''
+    eventTimeQuery = ContestTime.objects.get(id=1)
+    eventEndTime = eventTimeQuery.endTime.astimezone()
+    endTimeConverted = datetime.datetime(year=eventEndTime.year, month=eventEndTime.month, day=eventEndTime.day, hour=eventEndTime.hour, minute=eventEndTime.minute, second=eventEndTime.second)    
+    endTime = int(endTimeConverted.timestamp())
+
+    
+    def dispatch(self, request, *args, **kwargs):
+        currentTime = int(datetime.datetime.now().timestamp())
+        print("*****Time*****")
+        print("End time",self.endTime)
+        print("Current time",currentTime)
+
+        # Check if time is over
+        if currentTime > self.endTime:
+            return redirect('/home/')  # Replace 'home' with the URL name of your home page view
+
+        return super().dispatch(request, *args, **kwargs)
 
 class QuestionViewSet(viewsets.ReadOnlyModelViewSet):
     queryset = Question.objects.all()
@@ -176,8 +207,21 @@ class Submit(viewsets.GenericViewSet,mixins.CreateModelMixin):
                     return points
         except:
             pass
-          
-class GetSubmissions(viewsets.GenericViewSet,mixins.RetrieveModelMixin,mixins.ListModelMixin):
+
+'''
+        contest_time = Contest_time.objects.all()
+        end_time = contest_time[0].end_time.astimezone()
+        end_time = datetime(year=end_time.year, month=end_time.month, day=end_time.day, hour=end_time.hour, minute=end_time.minute, second=end_time.second)
+        final_time = int(end_time.timestamp())   #user end time in sec
+        current_time =  int(datetime.now().timestamp())   #crrent server time in sec
+        print("end time ",final_time,end_time)
+        print("crnt time ",current_time,datetime.now())
+        print("diff ",final_time-current_time)
+        dif = final_time-current_time'''
+
+
+    
+class GetSubmissions(TimeCheckMixin,viewsets.GenericViewSet,mixins.RetrieveModelMixin,mixins.ListModelMixin):
     queryset = Submission.objects.all()
     serializer_class = GetSubmissionSerializer
     lookup_field="id"
@@ -208,3 +252,4 @@ class GetSubmissions(viewsets.GenericViewSet,mixins.RetrieveModelMixin,mixins.Li
     
     # http://127.0.0.1:8000/api/submissions/?question=fa152&team=232fa&id=4
         
+
