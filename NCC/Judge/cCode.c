@@ -3,27 +3,27 @@
 
 int main(){
     //AC
-    printf("hello\n");
+    //printf("hello\n");
 
     //TLE
-    // while (1) {
-    //     // Infinite loop
-    // }
+     //while (1) {
+         // Infinite loop
+    //}
 
     //RE
-    // int x = 10;
-    // int y = 0;
-    // int z = x / y;
+     //int x = 10;
+     //int y = 0;
+   // int z = x / y;
 
     // CE
-    // int a
+     //int a
     // scanf("%d", &a);
-    // printf("a: %d\n", a);
+   // printf("a: %d\n", a);
 
      // What type of error is this  Segmentation fault (core dumped)
 
     // This code will consume large amounts of memory
-    // int* arr = (int*)malloc(10 * 1024 * 1024); // Allocating 10 MB of memory
+     int* arr = (int*)malloc(1000 * 1024 * 1024); // Allocating 10 MB of memory
 
     //     // Read from the allocated memory to prevent the code from being optimized out
     //     int sum = 0;

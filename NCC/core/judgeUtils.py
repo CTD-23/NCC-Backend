@@ -14,7 +14,7 @@ ErrorCodes={
     1:"CE",
 
     #py
-    137:"TLE",
+    # 137:"TLE",    
     134:"MLE",
     127:"MLE",  #in py when memory is too less 2mb
 
@@ -25,10 +25,13 @@ ErrorCodes={
     #c
     139:"MLE",  #Segmentation fault (core dumped)
 
+    #Docker
+    124:"TLE",
+    137:"MLE",
 
+
+    # Custom
     69:"WA",
-
-
     6969:"Unknown Error"    #We will throw this return code when user uses some diff code syntax in code as our machine is not have such library or module to handle that part
 
 }
@@ -85,6 +88,7 @@ def get_output_files():
     except:
         rc = 6969
 
+    print("******return code in utils*****")
     print("Return code -> ",rc)
     return output, err, rc
 
@@ -121,13 +125,13 @@ def runCode(question,code, language,isSubmitted,input=None):             #btn_cl
 
     if not (isSubmitted):
         output, err, rc = execute_run(code, language,input)
-        print("**************")
-        print(output)
-        print(err)
-        print(rc)
-        print("************")
+
         if rc !=0:
             TC_Status["error"]=err
+            if rc == 124:
+                TC_Status["error"]="Time Limit Exeed"
+            if rc == 137:
+                TC_Status["error"]="Memory Limit Exeed"
             TC_Status["returnCode"]=rc
             TC_Status["status"]=ErrorCodes[rc]
         else:

@@ -22,7 +22,8 @@ outputFile = open(outputFilePath,"w+")
 errorFile = open(errorFilePath,"w+")
 returnCodeFile = open(returnCodeFilePath,"w+")
 
-CONTAINER_NAME="container1"
+CONTAINER_NAME="container1"    #with ml
+CONTAINER_NAME2="container2"
 
 #Limiting Resources 
 def setLimit():
@@ -40,7 +41,7 @@ ErrorCodes={
     1:"CE",
 
     #py
-    137:"TLE",
+    # 137:"TLE",
     134:"MLE",
     127:"MLE",  #in py when memory is too less 2mb
 
@@ -51,16 +52,19 @@ ErrorCodes={
     #c
     139:"MLE",  #Segmentation fault (core dumped)
 
+    #Docker
+    124:"TLE",
+    137:"MLE",
 
 }
 
 def run_python():
     # cmd = f"python3 {pyCodeFile}"  #1
-    cmd  = f"sudo docker exec {CONTAINER_NAME} sh -c ' python3 src/pyCode.py < src/input.txt'"
+    cmd  = f"sudo docker exec {CONTAINER_NAME} sh -c 'timeout 2s  python3 src/pyCode.py < src/input.txt'"
     subprocessOutput = subprocess.Popen(
                 cmd,
                 shell=True,
-                preexec_fn=setLimit(),
+                # preexec_fn=setLimit,
                 # stdin=inputFile,
                 stdout=outputFile,
                 stderr=errorFile,
@@ -68,34 +72,41 @@ def run_python():
             )
 
     subprocessOutput.wait()
+    
     print("******return code in judge python script*****")
     returnCode = subprocessOutput.returncode
     print("return code ",returnCode)
-    print("subproces ",subprocessOutput)
-    print("srgs ",subprocessOutput.args)
-    # print(ErrorCodes[returnCode])
+    # stdout,stderr = subprocessOutput.communicate()
+    # print(stdout)
+    # print(stderr)
+    # returnCode = 69
+
     returnCodeFile.write(str(returnCode))
 
 
 def run_cpp():
-    # cmd = r"g++" + f"{cppCodeFile}" + f" -o {directoryName}/cppExeFile"  #1
-    # cmd = r"g++ " + f"{cppCodeFile}" + f" -o {directoryName}/cppExeFile"  #2
-    cmd = r"g++ " + f"{cppCodeFile}" + f" -o {directoryName}/cppExeFile"  #3
+    # cmd = r"g++ " + f"{cppCodeFile}" + f" -o {directoryName}/cppExeFile"  #3   #runnning
+    print("=>Cpp code compilation start")
+    cmd = f"sudo docker exec {CONTAINER_NAME} sh -c 'timeout 1s  g++ src/cppCode.cpp -o src/cppExeFile'"  #3
     subprocessCppExe = subprocess.Popen(cmd, shell=True, stderr=errorFile)
     subprocessCppExe.wait()
+    print("=>Cpp code compilation done")
     if subprocessCppExe.returncode == 0:
-        ExeCmd = r"{0}/./cppExeFile".format(directoryName)
+        # ExeCmd = r"{0}/./cppExeFile".format(directoryName)   #runnig
+        print("Cpp bin file start")
+        ExeCmd = f"sudo docker exec {CONTAINER_NAME} sh -c 'timeout 1s  src/./cppExeFile < src/input.txt'"
         # ExeCmd = r"{0}./cppExeFile".format(directoryName)
         subprocessOutput = subprocess.Popen(
             ExeCmd,
             shell=True,
-            preexec_fn=setLimit(),
-            stdin=inputFile,
+            # preexec_fn=setLimit(),
+            # stdin=inputFile,
             stdout=outputFile,
             stderr=errorFile,
             text=True,
         )
         subprocessOutput.wait()
+        print("Cpp bin file execution done")
         returnCode = subprocessOutput.returncode
         # print(returnCode)
         # print(ErrorCodes[returnCode])
@@ -109,16 +120,18 @@ def run_cpp():
 
 
 def run_c():
-    cmd = "gcc " + f"{cCodeFile}" + f" -o {directoryName}/cExeFile"
+    # cmd = "gcc " + f"{cCodeFile}" + f" -o {directoryName}/cExeFile"
+    cmd = f"sudo docker exec {CONTAINER_NAME} sh -c 'timeout 1s  g++ src/cCode.c -o src/cExeFile'"
     subprocessCExe = subprocess.Popen(cmd, shell=True, stderr=errorFile)
     subprocessCExe.wait()
     if subprocessCExe.returncode == 0:
-        ExeCmd = r"{0}/./cExeFile".format(directoryName)
+        # ExeCmd = r"{0}/./cExeFile".format(directoryName)
+        ExeCmd = f"sudo docker exec {CONTAINER_NAME} sh -c 'timeout 1s  src/./cExeFile < src/input.txt'"
         subprocessOutput = subprocess.Popen(
             ExeCmd,
             shell=True,
-            preexec_fn=setLimit(),
-            stdin=inputFile,
+            # preexec_fn=setLimit(),
+            # stdin=inputFile,
             stdout=outputFile,
             stderr=errorFile,
             text=True,

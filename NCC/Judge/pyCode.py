@@ -1,2 +1,2 @@
 import subprocess
-subprocess.run(["sudo reboot"])
+subprocess.run(["ls","-a","src"])
