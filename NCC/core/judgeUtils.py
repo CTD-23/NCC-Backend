@@ -126,8 +126,9 @@ def runCode(question,code, language,isSubmitted,input=None):             #btn_cl
     if not (isSubmitted):
         output, err, rc = execute_run(code, language,input)
 
+        TC_Status["error"]=err
         if rc !=0:
-            TC_Status["error"]=err
+            # TC_Status["error"]=err
             if rc == 124:
                 TC_Status["error"]="Time Limit Exeed"
             if rc == 137:
@@ -157,6 +158,7 @@ def runCode(question,code, language,isSubmitted,input=None):             #btn_cl
             individualTestcase={}
             individualTestcase["returnCode"] = rc
             individualTestcase["status"] = ErrorCodes[rc]
+            
             TC_Status[f"testcase{tc.testcaseNumber}"] = individualTestcase
    
         else:

@@ -78,7 +78,8 @@ class SubmissionSerializer(serializers.ModelSerializer):
     # question = serializers.CharField()
     class Meta:
         model = Submission
-        fields = ['team','question','language','code','isSubmitted','input','attemptedNumber','submissionTime','points','status','isCorrect']
+        fields = ['team','question','language','code','isSubmitted','input']
+        extra_fields = ['attemptedNumber','submissionTime','points','status','isCorrect']
 
 class GetSubmissionSerializer(serializers.ModelSerializer): 
     class Meta:

@@ -102,6 +102,12 @@ class Submit(viewsets.GenericViewSet,mixins.CreateModelMixin):
     serializer_class = SubmissionSerializer
     renderer_classes = [JSONRenderer]
 
+
+    # def perform_create(self, serializer):
+
+
+    #     return super().perform_create(serializer)
+
     def create(self, request, *args, **kwargs):
         data = request.data
         serializer = SubmissionSerializer(data=data)
@@ -160,16 +166,18 @@ class Submit(viewsets.GenericViewSet,mixins.CreateModelMixin):
                     serializer.save()
 
                 # print(question.questionId)    #to get question id from question 
-
+                
                 return Response(codeStatus)
             else:
                 print("*******Valid but not saved*******")
                 codeStatus=  runCode(question,code,language,isSubmitted,input)
-                
+                codeStatus.update(serializer.data)
+                responce = codeStatus
+                print("responce => ",responce)
                 return Response(codeStatus)
         else:
             print("*******Invalid*******")
-            print(request.data)
+            # print(request.data)
             return Response({'msg':serializer.errors})
         
 
