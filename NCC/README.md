@@ -5,7 +5,7 @@
 - This API allows multiple ratings and feedback from users.
 
 ### Create a Rating
-- URL: `/api/ratings/`
+- URL: `/api/rating/`
 - Method: `POST`
 - Headers:
   - `Authorization: Bearer <jwt_token>`
