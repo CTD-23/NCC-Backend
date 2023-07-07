@@ -18,9 +18,11 @@ class QuestionSerializer(serializers.ModelSerializer):
 
 
 class RatingSerializer(serializers.ModelSerializer):
+     user = serializers.CharField(required = False)
+     rating = serializers.IntegerField()
      class Meta:
         model = Rating
-        fields = "__all__"
+        fields = ["id","user","rating","feedBack"]
 
 
 class IndividualLeaderBoardSerializer(serializers.ModelSerializer):
@@ -78,8 +80,8 @@ class SubmissionSerializer(serializers.ModelSerializer):
     # question = serializers.CharField()
     class Meta:
         model = Submission
-        fields = ['team','question','language','code','isSubmitted','input']
-        extra_fields = ['attemptedNumber','submissionTime','points','status','isCorrect']
+        fields = ['question','language','code','isSubmitted','input']
+        extra_fields = ["team",'attemptedNumber','submissionTime','points','status','isCorrect']
 
 class GetSubmissionSerializer(serializers.ModelSerializer): 
     class Meta:

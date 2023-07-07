@@ -25,7 +25,7 @@ class Question(models.Model):
     
     accuracy = models.IntegerField(default=0)
     totalSubmissions = models.IntegerField(default=0)
-    setter = models.CharField(max_length=100,default="")
+    author = models.CharField(max_length=100,default="")
 
     category_choice= [("junior","junior"),("senior","senior"),("both","both")]
     category = models.CharField(choices=category_choice, max_length=10,null=True)
@@ -106,7 +106,7 @@ class ContestTime(models.Model):
 
 
 class Rating(models.Model):
-    user = models.OneToOneField(User, on_delete=models.CASCADE)
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
     rating = models.IntegerField(default=5)
     feedBack = models.TextField()
 

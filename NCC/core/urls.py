@@ -12,4 +12,5 @@ router.register(r'submissions', GetSubmissions,basename='submissions')
 urlpatterns = [
     path('home/', home,name="home"),
     path('api/', include(router.urls)),
+    path('api/login/', LoginApiView.as_view(),name="login"),
 ]

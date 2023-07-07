@@ -6,14 +6,39 @@ from django.views import View
 from django.shortcuts import redirect,HttpResponse
 from django.http import JsonResponse
 from rest_framework.response import Response
+from rest_framework import status
 from rest_framework.parsers import JSONParser
 import json,io
 from django.db.models import Q 
 # from rest_framework.authentication import 
+# Authentication and Permissions
+from rest_framework_simplejwt.authentication import JWTAuthentication
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.renderers import JSONRenderer
 from .judgeUtils import *
-import datetime 
+# import datetime 
+from datetime import datetime 
+
+from .customAuth import *
+
+# JWT
+from rest_framework_simplejwt.tokens import RefreshToken
+from rest_framework_simplejwt.views import TokenObtainPairView
+from rest_framework_simplejwt.exceptions import TokenError , InvalidToken
+
+
+class LoginApiView(TokenObtainPairView):
+    def post(self, request, *args, **kwargs):
+        serializer = self.get_serializer(data=request.data)
+
+        try:
+            serializer.is_valid(raise_exception=True)
+        except TokenError as e:
+            raise InvalidToken(e.args[0])
+           
+        res = Response(serializer.validated_data, status=status.HTTP_200_OK)
+        # access_token = serializer.validated_data['access']
+        return res
 
 
 def home(request):
@@ -23,32 +48,51 @@ def home(request):
     }
     return HttpResponse(codeDict[1])
 
-class TimeCheckMixin:
+class TimeCheck:
     '''Class to handle time end
     by invoking dispatch method where it is inherited
+
+        contest_time = Contest_time.objects.all()
+        end_time = contest_time[0].end_time.astimezone()
+        end_time = datetime(year=end_time.year, month=end_time.month, day=end_time.day, hour=end_time.hour, minute=end_time.minute, second=end_time.second)
+        final_time = int(end_time.timestamp())   #user end time in sec
+        current_time =  int(datetime.now().timestamp())   #crrent server time in sec
+        print("end time ",final_time,end_time)
+        print("crnt time ",current_time,datetime.now())
+        print("diff ",final_time-current_time)
+        dif = final_time-current_time
     '''
-    eventTimeQuery = ContestTime.objects.get(id=1)
-    eventEndTime = eventTimeQuery.endTime.astimezone()
-    endTimeConverted = datetime.datetime(year=eventEndTime.year, month=eventEndTime.month, day=eventEndTime.day, hour=eventEndTime.hour, minute=eventEndTime.minute, second=eventEndTime.second)    
-    endTime = int(endTimeConverted.timestamp())
 
     
     def dispatch(self, request, *args, **kwargs):
-        currentTime = int(datetime.datetime.now().timestamp())
+        eventTimeQuery = ContestTime.objects.get(id=1)
+        eventEndTime = eventTimeQuery.endTime.astimezone()
+        print("Event time => ",eventEndTime)
+        endTimeConverted = datetime(year=eventEndTime.year, month=eventEndTime.month, day=eventEndTime.day, hour=eventEndTime.hour, minute=eventEndTime.minute, second=eventEndTime.second)    
+        endTime = int(endTimeConverted.timestamp())
+
+
+        currentTime = int(datetime.now().timestamp())
+        print("current timr => ",datetime.now())
         print("*****Time*****")
-        print("End time",self.endTime)
-        print("Current time",currentTime)
+        print("End time => ",endTime)
+        print("Current time => ",currentTime)
 
         # Check if time is over
-        if currentTime > self.endTime:
-            return redirect('/home/')  # Replace 'home' with the URL name of your home page view
+        if currentTime > endTime:
+            return redirect('/home/')  # Redirect to 'home' 
 
         return super().dispatch(request, *args, **kwargs)
 
-class QuestionViewSet(viewsets.ReadOnlyModelViewSet):
+class QuestionViewSet(TimeCheck,viewsets.ReadOnlyModelViewSet):
+    '''
+    To get question list respective to category (Junior,Senior,Both)
+    To get specific question by question ID from URL
+    '''
     queryset = Question.objects.all()
     serializer_class = QuestionSerializer
     lookup_field="questionId"
+    authentication_classes = [JWTAuthentication]
     permission_classes = [IsAuthenticated]    
 
     def get_queryset(self):
@@ -59,8 +103,20 @@ class QuestionViewSet(viewsets.ReadOnlyModelViewSet):
 
 
 class RatingViewSet(viewsets.GenericViewSet,mixins.CreateModelMixin,mixins.RetrieveModelMixin,mixins.ListModelMixin):
+    
     queryset = Rating.objects.all()
     serializer_class = RatingSerializer
+    authentication_classes = [JWTAuthentication]
+    permission_classes = [IsAuthenticated]
+
+    def create(self, request, *args, **kwargs):
+        data = request.data
+        serializer = RatingSerializer(data=data)
+        if serializer.is_valid():
+            user = self.request.user
+            serializer.validated_data["user"] = user
+            serializer.save()
+        return Response(serializer.data)
     def get_queryset(self):
         queryset = super().get_queryset()
         return queryset
@@ -69,6 +125,8 @@ class LeaderBoardViewSet(viewsets.ReadOnlyModelViewSet):
     queryset = Team.objects.all()
     serializer_class = LeaderBoardSerializer
     renderer_classes = [JSONRenderer]
+    authentication_classes = [LeaderboardJwt]
+    # permission_classes = [IsAuthenticated]
 
     def list(self, request, *args, **kwargs):
         user = self.request.user
@@ -96,11 +154,13 @@ class LeaderBoardViewSet(viewsets.ReadOnlyModelViewSet):
             return Response(response_data)
         
 
-class Submit(viewsets.GenericViewSet,mixins.CreateModelMixin):
+class Submit(TimeCheck,viewsets.GenericViewSet,mixins.CreateModelMixin):
 
     queryset = Submission.objects.all()
     serializer_class = SubmissionSerializer
     renderer_classes = [JSONRenderer]
+    authentication_classes = [JWTAuthentication]
+    permission_classes = [IsAuthenticated]
 
 
     # def perform_create(self, serializer):
@@ -112,9 +172,9 @@ class Submit(viewsets.GenericViewSet,mixins.CreateModelMixin):
         data = request.data
         serializer = SubmissionSerializer(data=data)
         if serializer.is_valid():
-            # user = self.request.user
-            # team = Team.objects.get(Q(user1 = user) | Q(user2 = user))
-            team = serializer.validated_data['team']
+            user = self.request.user
+            team = Team.objects.get(Q(user1 = user) | Q(user2 = user))
+            # team = serializer.validated_data['team']
 
             code = serializer.validated_data['code']
             language = serializer.validated_data['language']
@@ -147,12 +207,13 @@ class Submit(viewsets.GenericViewSet,mixins.CreateModelMixin):
 
                     lastSubmissionNumber = Submission.objects.filter(question=question,team=team).last().attemptedNumber
                     serializer.validated_data['attemptedNumber'] = lastSubmissionNumber+1
+                    serializer.validated_data['team'] = team
                     serializer.save()
 
                     #This team query to save users score and last update in score
                     teamQuery= Team.objects.get(teamId = team)
                     teamQuery.score += score
-                    teamQuery.lastUpdate = datetime.datetime.now()
+                    teamQuery.lastUpdate = datetime.now()
                     teamQuery.save()
                 else:
                     #When answer is other than AC
@@ -163,6 +224,7 @@ class Submit(viewsets.GenericViewSet,mixins.CreateModelMixin):
 
                     lastSubmissionNumber = Submission.objects.filter(question=question,team=team).last().attemptedNumber
                     serializer.validated_data['attemptedNumber'] = lastSubmissionNumber+1
+                    serializer.validated_data['team'] = team
                     serializer.save()
 
                 # print(question.questionId)    #to get question id from question 
@@ -216,48 +278,32 @@ class Submit(viewsets.GenericViewSet,mixins.CreateModelMixin):
         except:
             pass
 
-'''
-        contest_time = Contest_time.objects.all()
-        end_time = contest_time[0].end_time.astimezone()
-        end_time = datetime(year=end_time.year, month=end_time.month, day=end_time.day, hour=end_time.hour, minute=end_time.minute, second=end_time.second)
-        final_time = int(end_time.timestamp())   #user end time in sec
-        current_time =  int(datetime.now().timestamp())   #crrent server time in sec
-        print("end time ",final_time,end_time)
-        print("crnt time ",current_time,datetime.now())
-        print("diff ",final_time-current_time)
-        dif = final_time-current_time'''
-
-
     
-class GetSubmissions(TimeCheckMixin,viewsets.GenericViewSet,mixins.RetrieveModelMixin,mixins.ListModelMixin):
+
+class GetSubmissions(TimeCheck,viewsets.GenericViewSet,mixins.ListModelMixin):
+    '''This view get parameters from url'''
+    
     queryset = Submission.objects.all()
     serializer_class = GetSubmissionSerializer
-    lookup_field="id"
-    # permission_classes = [IsAuthenticated]    
+    lookup_field="question"
+    authentication_classes = [JWTAuthentication]
+    permission_classes = [IsAuthenticated] 
 
     def get_queryset(self):
         user = self.request.user
         team = Team.objects.get(Q(user1 = user)| Q(user2 = user))
         queryset = super().get_queryset()
-        queryset = queryset.filter(team = team)
-            
-        # Getting parameters
-        question = self.request.query_params.get("question")
-        submission_id = self.request.query_params.get("id",None)
-        # team = self.request.query_params.get("team")
+        queryset = queryset.filter(team = team).order_by("-id")
         
-        #Apply filters to the queryset
-        if question:
-            queryset = queryset.filter(question=question)
-        # if team:
-        #     queryset = queryset.filter(team=team)
-        if submission_id:
-            queryset = queryset.filter(id=submission_id)
-            
-            
 
+        question = self.request.query_params.get("question")
+        if question:    
+            print(question)
+            queryset = queryset.filter(question=question)
+        
+            
         return queryset
     
-    # http://127.0.0.1:8000/api/submissions/?question=fa152&team=232fa&id=4
+    # http://127.0.0.1:8000/api/submissions/?question=fa152
         
 
