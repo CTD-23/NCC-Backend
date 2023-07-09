@@ -68,19 +68,6 @@ class TeamRegisterApi(viewsets.GenericViewSet,mixins.CreateModelMixin):
     authentication_classes = [SessionAuthentication]
 
 
-# class LoginApiView(TokenObtainPairView):
-#     def post(self, request, *args, **kwargs):
-#         serializer = self.get_serializer(data=request.data)
-
-#         try:
-#             serializer.is_valid(raise_exception=True)
-#         except TokenError as e:
-#             print("USer not found")
-#             raise InvalidToken(e.args[0])
-           
-#         res = Response(serializer.validated_data, status=status.HTTP_200_OK)
-#         # access_token = serializer.validated_data['access']
-#         return res
 
 
 def home(request):
