@@ -10,7 +10,7 @@ router.register(r'submit', Submit,basename='submit')
 router.register(r'submissions', GetSubmissions,basename='submissions')
 
 
-# Only for Admin User
+# Only for Admin and Superuser
 secretRouter = routers.DefaultRouter()
 secretRouter.register(r'register',RegisterApi)
 secretRouter.register(r'teamregister',TeamRegisterApi)
