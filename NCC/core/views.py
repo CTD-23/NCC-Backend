@@ -1,5 +1,7 @@
 from rest_framework import viewsets
 from rest_framework.generics import mixins
+from rest_framework.views import APIView
+from rest_framework import generics
 from .models import *
 from .serializers import *
 from django.views import View
@@ -13,7 +15,9 @@ from django.db.models import Q
 # from rest_framework.authentication import 
 # Authentication and Permissions
 from rest_framework_simplejwt.authentication import JWTAuthentication
-from rest_framework.permissions import IsAuthenticated
+from rest_framework.permissions import IsAuthenticated,IsAdminUser
+from rest_framework.authentication import SessionAuthentication
+from django.contrib.auth import authenticate
 from rest_framework.renderers import JSONRenderer
 from .judgeUtils import *
 # import datetime 
@@ -27,18 +31,56 @@ from rest_framework_simplejwt.views import TokenObtainPairView
 from rest_framework_simplejwt.exceptions import TokenError , InvalidToken
 
 
-class LoginApiView(TokenObtainPairView):
-    def post(self, request, *args, **kwargs):
-        serializer = self.get_serializer(data=request.data)
+class LoginApi(generics.CreateAPIView):
+    serializer_class = LoginSerializer
+    def post(self, request, format=None):
 
-        try:
-            serializer.is_valid(raise_exception=True)
-        except TokenError as e:
-            raise InvalidToken(e.args[0])
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+
+        username = serializer.validated_data.get('username')
+        password = serializer.validated_data.get('password')
+
+        user = authenticate(username=username, password=password)
+
+        if user is not None:
+            token = RefreshToken.for_user(user=user)
+            return Response({'token': str(token.access_token)}, status=status.HTTP_200_OK)
+        
+        
+        # If user not present in local db
+        # Fetch API 
+        print("Api Fetch")
+        return Response(status=status.HTTP_404_NOT_FOUND)
+        
+
+class RegisterApi(viewsets.GenericViewSet,mixins.CreateModelMixin):
+    queryset = User.objects.all()
+    serializer_class = RegisterSerializer
+    permission_classes=[IsAuthenticated,IsAdminUser]
+    authentication_classes = [SessionAuthentication]
+
+
+class TeamRegisterApi(viewsets.GenericViewSet,mixins.CreateModelMixin):
+    queryset = Team.objects.all()
+    serializer_class = TeamRegisterSerializer
+    permission_classes=[IsAuthenticated,IsAdminUser]
+    authentication_classes = [SessionAuthentication]
+
+
+# class LoginApiView(TokenObtainPairView):
+#     def post(self, request, *args, **kwargs):
+#         serializer = self.get_serializer(data=request.data)
+
+#         try:
+#             serializer.is_valid(raise_exception=True)
+#         except TokenError as e:
+#             print("USer not found")
+#             raise InvalidToken(e.args[0])
            
-        res = Response(serializer.validated_data, status=status.HTTP_200_OK)
-        # access_token = serializer.validated_data['access']
-        return res
+#         res = Response(serializer.validated_data, status=status.HTTP_200_OK)
+#         # access_token = serializer.validated_data['access']
+#         return res
 
 
 def home(request):
