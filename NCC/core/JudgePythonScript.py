@@ -22,7 +22,7 @@ outputFile = open(outputFilePath,"w+")
 errorFile = open(errorFilePath,"w+")
 returnCodeFile = open(returnCodeFilePath,"w+")
 
-CONTAINER_NAME="container1"    #with ml
+CONTAINER_NAME="container"    #with ml
 CONTAINER_NAME2="container2"
 
 #Limiting Resources 
@@ -58,9 +58,10 @@ ErrorCodes={
 
 }
 
-def run_python():
+def run_python(userId):
+    print("container allocated ",CONTAINER_NAME,userId)
     # cmd = f"python3 {pyCodeFile}"  #1
-    cmd  = f"sudo docker exec {CONTAINER_NAME2} sh -c 'timeout 2s  python3 src/pyCode.py < src/input.txt'"
+    cmd  = f"sudo docker exec {CONTAINER_NAME}{userId} sh -c 'timeout 2s  python3 src/pyCode.py < src/input.txt'"
     subprocessOutput = subprocess.Popen(
                 cmd,
                 shell=True,
@@ -84,7 +85,7 @@ def run_python():
     returnCodeFile.write(str(returnCode))
 
 
-def run_cpp():
+def run_cpp(userId):
     # cmd = r"g++ " + f"{cppCodeFile}" + f" -o {directoryName}/cppExeFile"  #3   #runnning
     print("=>Cpp code compilation start")
     cmd = f"sudo docker exec {CONTAINER_NAME2} sh -c 'timeout 2s  g++ src/cppCode.cpp -o src/cppExeFile'"  #3
@@ -119,7 +120,7 @@ def run_cpp():
         returnCodeFile.write(str(returnCode))
 
 
-def run_c():
+def run_c(userId):
     # cmd = "gcc " + f"{cCodeFile}" + f" -o {directoryName}/cExeFile"
     cmd = f"sudo docker exec {CONTAINER_NAME} sh -c 'timeout 1s  g++ src/cCode.c -o src/cExeFile'"
     subprocessCExe = subprocess.Popen(cmd, shell=True, stderr=errorFile)

@@ -5,12 +5,13 @@ from .views import *
 router = routers.DefaultRouter()
 router.register(r'questions', QuestionViewSet)
 router.register(r'rating', RatingViewSet)
-router.register(r'leaderboard', LeaderBoardViewSet)
+router.register(r'leaderboard', LeaderBoardViewSet,basename='leaderboard')
 router.register(r'submit', Submit,basename='submit')
 router.register(r'submissions', GetSubmissions,basename='submissions')
+router.register(r'gettime', GetTime,basename='gettime')
 
 
-# Only for Admin and Superuser
+# Only for Admin and Superuser (Emergency)
 secretRouter = routers.DefaultRouter()
 secretRouter.register(r'register',RegisterApi)
 secretRouter.register(r'teamregister',TeamRegisterApi)

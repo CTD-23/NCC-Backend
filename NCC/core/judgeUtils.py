@@ -36,8 +36,8 @@ ErrorCodes={
 
 }
 
-def execute(code, language,input):
-    copy_run_py(language)
+def execute(code, language,userId,input):
+    copy_run_py(language,userId)
     copy_code(code,language)
     copy_input(input)
     run = subprocess.run(f"python3 {JudgeFolderPath}/main.py", shell=True)
@@ -56,12 +56,12 @@ def compare(output, tc):
         return False
 
 
-def copy_run_py(language):
+def copy_run_py(language,userId):
     src = f"{judgeUtilsDirPath}/JudgePythonScript.py"
     dst = f"{JudgeFolderPath}/main.py"
     shutil.copyfile(src, dst)
     file1 = open(dst, "a")  # append mode
-    file1.write(f"\nrun_{language}()")
+    file1.write(f"\nrun_{language}({userId})")
     file1.close()
 
 def copy_code(code,language):
@@ -86,6 +86,9 @@ def get_output_files():
     try :
         rc = int(open(f"{JudgeFolderPath}/returnCode.txt").read())
     except:
+        print("******Error*******")
+        print("Judge did not return any return code")
+        
         rc = 6969
 
     print("******return code in utils*****")
@@ -108,8 +111,8 @@ def copy_input_for_run(tc):
         dst.write(tc)
     dst.close()
 
-def execute_run(code, language,tc):
-    copy_run_py(language)
+def execute_run(code, language,userId,tc):
+    copy_run_py(language,userId)
     copy_code(code,language)
     copy_input_for_run(tc)
     run = subprocess.run(f"python3 {JudgeFolderPath}/main.py", shell=True)
@@ -119,12 +122,12 @@ def execute_run(code, language,tc):
 
 
 # def runCode(question, code, language,isSubmitted,input=None):             #btn_click_status true = submit and false = run
-def runCode(question,code, language,isSubmitted,input=None):             #btn_click_status true = submit and false = run
+def runCode(question,code, language,isSubmitted,userId,input=None):             #btn_click_status true = submit and false = run
     TC_Status = {}
 
 
     if not (isSubmitted):
-        output, err, rc = execute_run(code, language,input)
+        output, err, rc = execute_run(code, language,userId,input)
 
         TC_Status["error"]=err
         if rc !=0:
@@ -145,7 +148,7 @@ def runCode(question,code, language,isSubmitted,input=None):             #btn_cl
     TCs = Testcase.objects.filter(question=question).order_by('testcaseNumber')
 
     for tc in TCs:
-        output, err, rc = execute(code, language,tc)
+        output, err, rc = execute(code, language,userId,tc)
 
         if rc != 0:
             individualTestcase={}

@@ -15,8 +15,21 @@ Including another URLconf
 """
 from django.contrib import admin
 from django.urls import path,include
+import core
 
 urlpatterns = [
     path('admin/', admin.site.urls),
-    path('', include('core.urls'))
+    path('', include('core.urls')),
+    path('postContest/', include('postContest.urls')),
 ]
+
+from django.conf.urls import handler400, handler403, handler404, handler500
+# 404 not found error
+# handler404 = core.views.errors_404
+# # 500 internal server error
+# handler500 = core.views.errors_500
+# # # 400 bad request error
+# handler400 = core.views.errors_400
+# # 403 permission denied error
+# handler403 = 'core.views.error_403'
+

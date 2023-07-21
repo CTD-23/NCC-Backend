@@ -126,3 +126,10 @@ use if necessory
 #     startTime = models.DateTimeField(null=True,blank=True)    
 #     def __str__(self):
 #         return f"{self.user}"
+
+
+class Container(models.Model):
+    containerId = models.IntegerField()
+    status = models.BooleanField(default=False)
+    count = models.IntegerField(default=0)
+

@@ -1,5 +1,11 @@
 from django.contrib import admin
 from .models import *
+from django.contrib.auth.models import User
+
+from import_export.admin import ExportActionMixin
+from import_export import resources
+from import_export.admin import ImportExportModelAdmin
+
 
 
 class QuestionAdmin (admin.ModelAdmin):
@@ -14,7 +20,7 @@ class TestcaseAdmin (admin.ModelAdmin):
     list_display = ("question","testcaseNumber")
 admin.site.register(Testcase,TestcaseAdmin)
 
-class TeamAdmin (admin.ModelAdmin):
+class TeamAdmin (ExportActionMixin,admin.ModelAdmin):
     list_display = ("teamId","user1","user2","score","isJunior","lastUpdate")
 admin.site.register(Team,TeamAdmin)
 
@@ -22,8 +28,13 @@ class ContestTimeAdmin (admin.ModelAdmin):
     list_display = ("id","startTime","endTime")
 admin.site.register(ContestTime,ContestTimeAdmin)
 
-class RatingAdmin(admin.ModelAdmin):
+class RatingAdmin(ExportActionMixin,admin.ModelAdmin):
     list_display= ("id","user","rating")
 admin.site.register(Rating,RatingAdmin)
+
+
+class ContainerAdmin(admin.ModelAdmin):
+    list_display= ("id","count","containerId","status")
+admin.site.register(Container,ContainerAdmin)
 
 

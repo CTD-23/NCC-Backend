@@ -4,5 +4,10 @@
 # while True:
 #     pass
 
-import subprocess
-subprocess.run(["ls","/"])
+# import subprocess
+# subprocess.run(["ls","/"])
+
+
+s = 1
+if not s:
+    print("rrr")

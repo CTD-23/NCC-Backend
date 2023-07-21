@@ -154,3 +154,8 @@ class TeamRegisterSerializer(serializers.ModelSerializer):
             'lastUpdate': {'required': False},
         }
     
+
+class GetTimeSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = ContestTime
+        fields = "__all__"

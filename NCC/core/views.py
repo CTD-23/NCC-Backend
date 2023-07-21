@@ -12,6 +12,7 @@ from rest_framework import status
 from rest_framework.parsers import JSONParser
 import json,io
 from django.db.models import Q 
+
 # from rest_framework.authentication import 
 # Authentication and Permissions
 from rest_framework_simplejwt.authentication import JWTAuthentication
@@ -20,9 +21,9 @@ from rest_framework.authentication import SessionAuthentication
 from django.contrib.auth import authenticate
 from rest_framework.renderers import JSONRenderer
 from .judgeUtils import *
-# import datetime 
-from datetime import datetime 
 
+from datetime import datetime 
+# Custom Authentication
 from .customAuth import *
 
 # JWT
@@ -49,7 +50,8 @@ class LoginApi(generics.CreateAPIView):
         
         
         # If user not present in local db
-        # Fetch API 
+        # Try on main website API
+        # request 
         print("Api Fetch")
         return Response(status=status.HTTP_404_NOT_FOUND)
         
@@ -67,7 +69,9 @@ class TeamRegisterApi(viewsets.GenericViewSet,mixins.CreateModelMixin):
     permission_classes=[IsAuthenticated,IsAdminUser]
     authentication_classes = [SessionAuthentication]
 
-
+class GetTime(viewsets.GenericViewSet,mixins.ListModelMixin):
+    queryset = ContestTime.objects.all()
+    serializer_class = GetTimeSerializer
 
 
 def home(request):
@@ -76,6 +80,13 @@ def home(request):
         1:"Redirected After time end",
     }
     return HttpResponse(codeDict[1])
+
+def errors_404(request,exception):    
+    return HttpResponse("404 Error")
+def errors_400(request,exception):    
+    return HttpResponse("400 Error")
+def errors_500(request):    
+    return HttpResponse("505 Error")
 
 class TimeCheck:
     '''Class to handle time end
@@ -96,13 +107,13 @@ class TimeCheck:
     def dispatch(self, request, *args, **kwargs):
         eventTimeQuery = ContestTime.objects.get(id=1)
         eventEndTime = eventTimeQuery.endTime.astimezone()
-        print("Event time => ",eventEndTime)
+        # print("Event time => ",eventEndTime)
         endTimeConverted = datetime(year=eventEndTime.year, month=eventEndTime.month, day=eventEndTime.day, hour=eventEndTime.hour, minute=eventEndTime.minute, second=eventEndTime.second)    
         endTime = int(endTimeConverted.timestamp())
 
 
         currentTime = int(datetime.now().timestamp())
-        print("current timr => ",datetime.now())
+        # print("current time => ",datetime.now())
         print("*****Time*****")
         print("End time => ",endTime)
         print("Current time => ",currentTime)
@@ -110,6 +121,7 @@ class TimeCheck:
         # Check if time is over
         if currentTime > endTime:
             return redirect('/home/')  # Redirect to 'home' 
+            # return Response({"msg":"Time is Ended"},status=status.HTTP_403_FORBIDDEN) 
 
         return super().dispatch(request, *args, **kwargs)
 
@@ -123,6 +135,7 @@ class QuestionViewSet(TimeCheck,viewsets.ReadOnlyModelViewSet):
     lookup_field="questionId"
     authentication_classes = [JWTAuthentication]
     permission_classes = [IsAuthenticated]    
+    renderer_classes = [JSONRenderer]
 
     def get_queryset(self):
         queryset = super().get_queryset()
@@ -166,12 +179,14 @@ class LeaderBoardViewSet(viewsets.ReadOnlyModelViewSet):
         senior_serializer = LeaderBoardSerializer(senior_query, many=True)
 
         if user.is_anonymous:
+            '''When user is non authorized'''
             response_data = {
                 'juniorLeaderboard': junior_serializer.data,
                 'seniorLeaderboard': senior_serializer.data,
             }
-            return Response(response_data)
+            return Response(response_data,status=status.HTTP_200_OK)
         else:
+            '''When user is authorized'''
             teamQuery = Team.objects.get(Q(user1 = user) | Q(user2 = user))
             teamRank = IndividualLeaderBoardSerializer(teamQuery)
 
@@ -180,8 +195,24 @@ class LeaderBoardViewSet(viewsets.ReadOnlyModelViewSet):
                 'juniorLeaderboard': junior_serializer.data,
                 'seniorLeaderboard': senior_serializer.data
             }
-            return Response(response_data)
+            return Response(response_data,status=status.HTTP_200_OK)
         
+
+def getContainer():
+    container = Container.objects.filter(status=False).exists()
+    if container:
+        containerId = Container.objects.filter(status=False).first()
+        containerId.status = True
+        containerId.count+=1
+        containerId.save()
+        return containerId.containerId
+    return None
+
+def deallocate(containerid):
+    container = Container.objects.get(containerId=containerid)
+    container.status = False
+    container.save()
+
 
 class Submit(TimeCheck,viewsets.GenericViewSet,mixins.CreateModelMixin):
 
@@ -191,17 +222,17 @@ class Submit(TimeCheck,viewsets.GenericViewSet,mixins.CreateModelMixin):
     authentication_classes = [JWTAuthentication]
     permission_classes = [IsAuthenticated]
 
-
-    # def perform_create(self, serializer):
-
-
-    #     return super().perform_create(serializer)
-
     def create(self, request, *args, **kwargs):
+        container = getContainer()
+        if not container:
+            return   Response({'msg':"Server is Busy"},status=status.HTTP_403_FORBIDDEN)
+        
         data = request.data
+        print("=> Requested Data ",data)
         serializer = SubmissionSerializer(data=data)
         if serializer.is_valid():
             user = self.request.user
+            userId = user.id
             team = Team.objects.get(Q(user1 = user) | Q(user2 = user))
             # team = serializer.validated_data['team']
 
@@ -211,12 +242,12 @@ class Submit(TimeCheck,viewsets.GenericViewSet,mixins.CreateModelMixin):
 
             input = serializer.validated_data.pop('input', "")
             isSubmitted = serializer.validated_data.pop('isSubmitted', False)
-            # print(serializer.data)
+            print("=> Serialized Data ",input)
 
             if isSubmitted:
                 print("*******Valid  and saved*******")
-                codeStatus=  runCode(question,code,language,isSubmitted,input)
-
+                codeStatus=  runCode(question,code,language,isSubmitted,container,input)
+                deallocate(container)
                 # return_code_testcase1 = codeStatus["testcase1"]["returnCode"]    #One method to get rc from runCode 
                 # print("Return code of testcase1:", return_code_testcase1)
                 
@@ -227,15 +258,20 @@ class Submit(TimeCheck,viewsets.GenericViewSet,mixins.CreateModelMixin):
                 print(returnCodeList)
                 if (returnCodeList.count(0) == len(returnCodeList)):
                     #It will work when user get all AC submission
+                    
                     serializer.validated_data['status'] = ErrorCodes[0]
 
                     score = self.getMaxScore(question,team)
-
+                    # print("************ score ",score )
                     serializer.validated_data['points'] = score
                     serializer.validated_data['isCorrect'] = True
 
-                    lastSubmissionNumber = Submission.objects.filter(question=question,team=team).last().attemptedNumber
-                    serializer.validated_data['attemptedNumber'] = lastSubmissionNumber+1
+                    try:
+                        lastSubmissionNumber = Submission.objects.filter(question=question,team=team).last().attemptedNumber
+                        serializer.validated_data['attemptedNumber'] = lastSubmissionNumber+1
+                    except:
+                        serializer.validated_data['attemptedNumber'] = 1
+
                     serializer.validated_data['team'] = team
                     serializer.save()
 
@@ -261,10 +297,13 @@ class Submit(TimeCheck,viewsets.GenericViewSet,mixins.CreateModelMixin):
                 return Response(codeStatus)
             else:
                 print("*******Valid but not saved*******")
-                codeStatus=  runCode(question,code,language,isSubmitted,input)
+                codeStatus=  runCode(question,code,language,isSubmitted,container,input)
+                deallocate(container)
+
+                serializer.validated_data['input'] = input
                 codeStatus.update(serializer.data)
                 responce = codeStatus
-                print("responce => ",responce)
+                # print("responce => ",responce)
                 return Response(codeStatus)
         else:
             print("*******Invalid*******")
@@ -276,7 +315,7 @@ class Submit(TimeCheck,viewsets.GenericViewSet,mixins.CreateModelMixin):
         questionQuery = Question.objects.get(questionId=question.questionId)
         points = questionQuery.points
         maxPoints = questionQuery.maxPoints
-
+        print("isdide get score ",question , team)
         
         try:
             submissionQuery = Submission.objects.filter(team = team ,question = question,isCorrect=True).exists()
@@ -301,10 +340,13 @@ class Submit(TimeCheck,viewsets.GenericViewSet,mixins.CreateModelMixin):
                         print("score < 0")
                         #User will get 10 points if its score is negative for right submission
                         return 10
+                    else:
+                        return points
                 except:
                     print("score = maxpoints")
                     return points
         except:
+            print("None value is returing ")
             pass
 
     
@@ -327,7 +369,7 @@ class GetSubmissions(TimeCheck,viewsets.GenericViewSet,mixins.ListModelMixin):
 
         question = self.request.query_params.get("question")
         if question:    
-            print(question)
+            # print("Users Question => ",question)
             queryset = queryset.filter(question=question)
         
             
