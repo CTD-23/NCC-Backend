@@ -84,14 +84,14 @@ def home(request):
     codeDict = {
         1:"Redirected After time end",
     }
-    a = homee.delay()
-    # b = a.get()
+    a = homee.delay(5)
+    b = a.get()
     # add.delay(2, 3)
 
-    print(a)   
+    print(b)   
     # print(b)   
      
-    return HttpResponse(a)
+    return HttpResponse(b.get('result'))
 
 
 class TimeCheck:
@@ -292,6 +292,7 @@ class Submit(TimeCheck,viewsets.GenericViewSet,mixins.CreateModelMixin):
             else:
                 print("*******Valid but not saved*******")
                 codeStatus=  runCode(question,code,language,isSubmitted,container,input)
+                codeStatus = codeStatus.get()
                 deallocate(container)
 
                 serializer.validated_data['input'] = input
@@ -374,9 +375,7 @@ class GetSubmissions(TimeCheck,viewsets.GenericViewSet,mixins.ListModelMixin):
 
 
 
-from .tasks import execute_code_task
 class Submit1(TimeCheck,viewsets.GenericViewSet,mixins.CreateModelMixin):
-
     queryset = Submission.objects.all()
     serializer_class = SubmissionSerializer
     renderer_classes = [JSONRenderer]
@@ -385,9 +384,10 @@ class Submit1(TimeCheck,viewsets.GenericViewSet,mixins.CreateModelMixin):
 
     def create(self, request, *args, **kwargs):
         container = getContainer()
-        print("Allocated container ",container)
         if not container:
-            return   Response({'msg':"Server is Busy"},status=status.HTTP_403_FORBIDDEN)
+            return Response({"msg":"Try Later"},status = status.HTTP_429_TOO_MANY_REQUESTS)
+        
+        print("Allocated container ",container)
         
         data = request.data
         # print("=> Requested Data ",data)
@@ -399,15 +399,28 @@ class Submit1(TimeCheck,viewsets.GenericViewSet,mixins.CreateModelMixin):
             # team = serializer.validated_data['team']
 
             code = serializer.validated_data['code']
+            
             language = serializer.validated_data['language']
             question = serializer.validated_data['question']
+            question = question.questionId
+            print(question)
 
             input = serializer.validated_data.pop('input', "")
             isSubmitted = serializer.validated_data.pop('isSubmitted', False)
             # print("=> Serialized Data ",input)
-            execute_code_task.delay(serializer,team,question, code, language, isSubmitted, container, input)
+            submissionId = None
+            if isSubmitted:
+                serializer.validated_data['team'] = team
+                serializer.validated_data['status'] = "PEN"
+                serializer = serializer.save()
+                print(serializer.id,"&&&&")
+                submissionId = serializer.id    #To get submission of user for further checking 
+
+            codeStatus = execute_code_task.delay(question, code, language, isSubmitted, container, input,submissionId)
             # return Response({"msg":"Submission Queued"},status=status.HTTP_200_OK)
-            return HttpResponse("hahfkjsdh")
+            codeStat = codeStatus.get()
+            deallocate(container)
+            return Response(codeStat,status=status.HTTP_200_OK)
         else:
             print("*******Invalid*******")
             # print(request.data)

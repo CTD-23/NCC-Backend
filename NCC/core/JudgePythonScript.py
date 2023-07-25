@@ -58,10 +58,10 @@ ErrorCodes={
 
 }
 
-def run_python(userId):
-    print("container allocated ",CONTAINER_NAME,userId)
+def run_python(containerId):
+    print("container allocated ",CONTAINER_NAME,containerId)
     # cmd = f"python3 {pyCodeFile}"  #1
-    cmd  = f"sudo docker exec {CONTAINER_NAME}{userId} sh -c 'timeout 2s  python3 src/pyCode.py < src/input.txt'"
+    cmd  = f"sudo docker exec {CONTAINER_NAME}{containerId} sh -c 'timeout 2s  python3 src/pyCode.py < src/input.txt'"
     subprocessOutput = subprocess.Popen(
                 cmd,
                 shell=True,
@@ -85,10 +85,10 @@ def run_python(userId):
     returnCodeFile.write(str(returnCode))
 
 
-def run_cpp(userId):
+def run_cpp(containerId):
     # cmd = r"g++ " + f"{cppCodeFile}" + f" -o {directoryName}/cppExeFile"  #3   #runnning
     print("=>Cpp code compilation start")
-    cmd = f"sudo docker exec {CONTAINER_NAME2} sh -c 'timeout 10s  g++ src/cppCode.cpp -o src/cppExeFile'"  #3
+    cmd = f"sudo docker exec {CONTAINER_NAME}{containerId} sh -c 'timeout 10s  g++ src/cppCode.cpp -o src/cppExeFile'"  #3
     subprocessCppExe = subprocess.Popen(cmd, shell=True, stderr=errorFile)
     subprocessCppExe.wait()
     print("=>Cpp code compilation done")
@@ -120,9 +120,9 @@ def run_cpp(userId):
         returnCodeFile.write(str(returnCode))
 
 
-def run_c(userId):
+def run_c(containerId):
     # cmd = "gcc " + f"{cCodeFile}" + f" -o {directoryName}/cExeFile"
-    cmd = f"sudo docker exec {CONTAINER_NAME} sh -c 'timeout 1s  g++ src/cCode.c -o src/cExeFile'"
+    cmd = f"sudo docker exec {CONTAINER_NAME}{containerId} sh -c 'timeout 1s  g++ src/cCode.c -o src/cExeFile'"
     subprocessCExe = subprocess.Popen(cmd, shell=True, stderr=errorFile)
     subprocessCExe.wait()
     if subprocessCExe.returncode == 0:

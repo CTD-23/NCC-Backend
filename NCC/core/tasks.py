@@ -4,19 +4,18 @@ from celery import shared_task
 from .utils import getContainer, deallocate
 from .judgeUtils import *
 from .serializers import *
-
+from datetime import datetime 
 from rest_framework.response import Response
 
 from django.shortcuts import redirect,HttpResponse
 from django.http import JsonResponse
+import json
 @shared_task(bind=True)
-def homee(self):
+def homee(self,a):
     print("***************celery request************")
     # return Response({'msg':'doen'})
     # return HttpResponse("done")
-    while 1:
-        pass
-    processed_data = {'result': 6 * 2}
+    processed_data = {'result': a * 2}
 
     # Return the JSON data
     return processed_data
@@ -27,7 +26,7 @@ def homee(self):
 
 
 def getMaxScore(question,team):
-    questionQuery = Question.objects.get(questionId=question.questionId)
+    questionQuery = Question.objects.get(questionId=question)
     points = questionQuery.points
     maxPoints = questionQuery.maxPoints
     print("inside get score ",question , team)
@@ -63,16 +62,23 @@ def getMaxScore(question,team):
         print("None value is returing ")
         pass
 
-@shared_task
-def execute_code_task(serializer,team,question, code, language, isSubmitted, container, input_data):
+
+
+
+@shared_task(bind=True)
+def execute_code_task(self,question, code, language, isSubmitted, container, input_data=None,submissionId = None):
+    '''
+    runCode(question,code, language,isSubmitted,userId,input=None)
+    '''
     try:
         if isSubmitted:
+            
             print("*******Valid  and saved*******")
-            codeStatus=  runCode(question,code,language,isSubmitted,container,input)
-            deallocate(container)
+            codeStatus=  runCode(question,code,language,isSubmitted,container,input_data)
             # return_code_testcase1 = codeStatus["testcase1"]["returnCode"]    #One method to get rc from runCode 
             # print("Return code of testcase1:", return_code_testcase1)
-            
+            userSubmission = Submission.objects.get(id = submissionId)
+            team = Team.objects.get(teamId = userSubmission.team)
             returnCodeList = []
             for testcase, values in codeStatus.items():
                 returnCodeList.append(values["returnCode"])
@@ -80,19 +86,23 @@ def execute_code_task(serializer,team,question, code, language, isSubmitted, con
             # print(returnCodeList)
             if (returnCodeList.count(0) == len(returnCodeList)):
                 #It will work when user get all AC submission
-                
-                serializer.validated_data['status'] = ErrorCodes[0]
+                userSubmission.status = ErrorCodes[0]
+                # serializer.validated_data['status'] = ErrorCodes[0]
                 score = getMaxScore(question,team)
                 # print("************ score ",score )
-                serializer.validated_data['points'] = score
-                serializer.validated_data['isCorrect'] = True
+                userSubmission.points = score
+                # serializer.validated_data['points'] = score
+                userSubmission.isCorrect = True
+                # serializer.validated_data['isCorrect'] = True
                 try:
-                    lastSubmissionNumber = Submission.objects.filter(question=question,team=team).last().attemptedNumber
-                    serializer.validated_data['attemptedNumber'] = lastSubmissionNumber+1
+                    lastSubmissionNumber = Submission.objects.filter(question=question,team=team)
+                    lastSubmissionNumber = lastSubmissionNumber[len(lastSubmissionNumber) - 2 ]
+                    userSubmission.attemptedNumber =  lastSubmissionNumber.attemptedNumber+1
                 except:
-                    serializer.validated_data['attemptedNumber'] = 1
-                serializer.validated_data['team'] = team
-                serializer.save()
+                    # print("44444444444")
+                    userSubmission.attemptedNumber =  1
+                    # serializer.validated_data['attemptedNumber'] = 1
+                userSubmission.save()
                 #This team query to save users score and last update in score
                 teamQuery= Team.objects.get(teamId = team)
                 teamQuery.score += score
@@ -100,26 +110,32 @@ def execute_code_task(serializer,team,question, code, language, isSubmitted, con
                 teamQuery.save()
             else:
                 #When answer is other than AC
-                serializer.validated_data['status'] = ErrorCodes[returnCodeList[-1]]
+                userSubmission.status = ErrorCodes[returnCodeList[-1]]
+                # serializer.validated_data['status'] = ErrorCodes[returnCodeList[-1]]
         
-                serializer.validated_data['points'] = 0
-                serializer.validated_data['isCorrect'] = False
+                userSubmission.points = 0
+                # serializer.validated_data['points'] = 0
+                userSubmission.isCorrect = False
+                # serializer.validated_data['isCorrect'] = False
                 lastSubmissionNumber = Submission.objects.filter(question=question,team=team).last().attemptedNumber
-                serializer.validated_data['attemptedNumber'] = lastSubmissionNumber+1
-                serializer.validated_data['team'] = team
-                serializer.save()
+                userSubmission.attemptedNumber = lastSubmissionNumber+1
+                # serializer.validated_data['attemptedNumber'] = lastSubmissionNumber+1
+                userSubmission.save()
             # print(question.questionId)    #to get question id from question 
             
-            return Response(codeStatus)
+            return codeStatus
+            
         else:
             print("*******Valid but not saved*******")
-            codeStatus=  runCode(question,code,language,isSubmitted,container,input)
-            deallocate(container)
-            serializer.validated_data['input'] = input
-            codeStatus.update(serializer.data)
-            responce = codeStatus
+            codeStatus=  runCode(question,code,language,isSubmitted,container,input_data)
+            # codeStatus["input"]=input
+            # print(type(codeStatus),"++++++++++++++++++++++")
             # print("responce => ",responce)
-            return Response(codeStatus)
+            # a = {"dfs":"SDfsdf"}
+            return codeStatus
         
-    finally:
-        deallocate(container)
+    except:
+        message = {
+            "msg":"Server is Busy"
+        }
+        return message

@@ -14,6 +14,5 @@ docker run -d -it --memory="512m" --name container10 -v $(pwd)/Judge:/src --secu
 
 
 
-# container1 with 512mb memory limit
-# container2 without memory limit
+# To Spawn container for isolation environment
 

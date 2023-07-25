@@ -93,6 +93,7 @@ class Submission(models.Model):
         ('RE','Runtime Error'),
     	('WA','Wrong Answer'), 	
         ('AC' ,'Accepted'),
+        ('PEN',"Pending")
     )
     status = models.CharField(max_length=5,choices=statusChoice,blank=True,null=True)
     isCorrect = models.BooleanField(default=False)
