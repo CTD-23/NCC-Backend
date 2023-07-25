@@ -32,6 +32,12 @@ from rest_framework_simplejwt.views import TokenObtainPairView
 from rest_framework_simplejwt.exceptions import TokenError , InvalidToken
 
 
+# Utils
+from .utils import getContainer,deallocate
+
+# celery
+from core.tasks import execute_code_task,homee
+
 class LoginApi(generics.CreateAPIView):
     serializer_class = LoginSerializer
     def post(self, request, format=None):
@@ -73,20 +79,20 @@ class GetTime(viewsets.GenericViewSet,mixins.ListModelMixin):
     queryset = ContestTime.objects.all()
     serializer_class = GetTimeSerializer
 
-
 def home(request):
     '''To check redirection'''
     codeDict = {
         1:"Redirected After time end",
     }
-    return HttpResponse(codeDict[1])
+    a = homee.delay()
+    # b = a.get()
+    # add.delay(2, 3)
 
-def errors_404(request,exception):    
-    return HttpResponse("404 Error")
-def errors_400(request,exception):    
-    return HttpResponse("400 Error")
-def errors_500(request):    
-    return HttpResponse("505 Error")
+    print(a)   
+    # print(b)   
+     
+    return HttpResponse(a)
+
 
 class TimeCheck:
     '''Class to handle time end
@@ -198,20 +204,7 @@ class LeaderBoardViewSet(viewsets.ReadOnlyModelViewSet):
             return Response(response_data,status=status.HTTP_200_OK)
         
 
-def getContainer():
-    container = Container.objects.filter(status=False).exists()
-    if container:
-        containerId = Container.objects.filter(status=False).first()
-        containerId.status = True
-        containerId.count+=1
-        containerId.save()
-        return containerId.containerId
-    return None
 
-def deallocate(containerid):
-    container = Container.objects.get(containerId=containerid)
-    container.status = False
-    container.save()
 
 
 class Submit(TimeCheck,viewsets.GenericViewSet,mixins.CreateModelMixin):
@@ -224,11 +217,12 @@ class Submit(TimeCheck,viewsets.GenericViewSet,mixins.CreateModelMixin):
 
     def create(self, request, *args, **kwargs):
         container = getContainer()
+        print("Allocated container ",container)
         if not container:
             return   Response({'msg':"Server is Busy"},status=status.HTTP_403_FORBIDDEN)
         
         data = request.data
-        print("=> Requested Data ",data)
+        # print("=> Requested Data ",data)
         serializer = SubmissionSerializer(data=data)
         if serializer.is_valid():
             user = self.request.user
@@ -242,7 +236,7 @@ class Submit(TimeCheck,viewsets.GenericViewSet,mixins.CreateModelMixin):
 
             input = serializer.validated_data.pop('input', "")
             isSubmitted = serializer.validated_data.pop('isSubmitted', False)
-            print("=> Serialized Data ",input)
+            # print("=> Serialized Data ",input)
 
             if isSubmitted:
                 print("*******Valid  and saved*******")
@@ -255,7 +249,7 @@ class Submit(TimeCheck,viewsets.GenericViewSet,mixins.CreateModelMixin):
                 for testcase, values in codeStatus.items():
                     returnCodeList.append(values["returnCode"])
                 
-                print(returnCodeList)
+                # print(returnCodeList)
                 if (returnCodeList.count(0) == len(returnCodeList)):
                     #It will work when user get all AC submission
                     
@@ -315,7 +309,7 @@ class Submit(TimeCheck,viewsets.GenericViewSet,mixins.CreateModelMixin):
         questionQuery = Question.objects.get(questionId=question.questionId)
         points = questionQuery.points
         maxPoints = questionQuery.maxPoints
-        print("isdide get score ",question , team)
+        print("inside get score ",question , team)
         
         try:
             submissionQuery = Submission.objects.filter(team = team ,question = question,isCorrect=True).exists()
@@ -378,3 +372,46 @@ class GetSubmissions(TimeCheck,viewsets.GenericViewSet,mixins.ListModelMixin):
     # http://127.0.0.1:8000/api/submissions/?question=fa152
         
 
+
+
+from .tasks import execute_code_task
+class Submit1(TimeCheck,viewsets.GenericViewSet,mixins.CreateModelMixin):
+
+    queryset = Submission.objects.all()
+    serializer_class = SubmissionSerializer
+    renderer_classes = [JSONRenderer]
+    authentication_classes = [JWTAuthentication]
+    permission_classes = [IsAuthenticated]
+
+    def create(self, request, *args, **kwargs):
+        container = getContainer()
+        print("Allocated container ",container)
+        if not container:
+            return   Response({'msg':"Server is Busy"},status=status.HTTP_403_FORBIDDEN)
+        
+        data = request.data
+        # print("=> Requested Data ",data)
+        serializer = SubmissionSerializer(data=data)
+        if serializer.is_valid():
+            user = self.request.user
+            userId = user.id
+            team = Team.objects.get(Q(user1 = user) | Q(user2 = user))
+            # team = serializer.validated_data['team']
+
+            code = serializer.validated_data['code']
+            language = serializer.validated_data['language']
+            question = serializer.validated_data['question']
+
+            input = serializer.validated_data.pop('input', "")
+            isSubmitted = serializer.validated_data.pop('isSubmitted', False)
+            # print("=> Serialized Data ",input)
+            execute_code_task.delay(serializer,team,question, code, language, isSubmitted, container, input)
+            # return Response({"msg":"Submission Queued"},status=status.HTTP_200_OK)
+            return HttpResponse("hahfkjsdh")
+        else:
+            print("*******Invalid*******")
+            # print(request.data)
+            return Response({'msg':serializer.errors})
+        
+
+   

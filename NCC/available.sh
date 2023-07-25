@@ -19,7 +19,7 @@
 #   fi
 # done
 
-#!/bin/bash
+
 
 # Get the container ID or name
 container_id_or_name="container1"

@@ -88,14 +88,14 @@ def run_python(userId):
 def run_cpp(userId):
     # cmd = r"g++ " + f"{cppCodeFile}" + f" -o {directoryName}/cppExeFile"  #3   #runnning
     print("=>Cpp code compilation start")
-    cmd = f"sudo docker exec {CONTAINER_NAME2} sh -c 'timeout 2s  g++ src/cppCode.cpp -o src/cppExeFile'"  #3
+    cmd = f"sudo docker exec {CONTAINER_NAME2} sh -c 'timeout 10s  g++ src/cppCode.cpp -o src/cppExeFile'"  #3
     subprocessCppExe = subprocess.Popen(cmd, shell=True, stderr=errorFile)
     subprocessCppExe.wait()
     print("=>Cpp code compilation done")
     if subprocessCppExe.returncode == 0:
         # ExeCmd = r"{0}/./cppExeFile".format(directoryName)   #runnig
         print("Cpp bin file start")
-        ExeCmd = f"sudo docker exec {CONTAINER_NAME2} sh -c 'timeout 2s  src/./cppExeFile < src/input.txt'"
+        ExeCmd = f"sudo docker exec {CONTAINER_NAME2} sh -c 'timeout 10s  src/./cppExeFile < src/input.txt'"
         # ExeCmd = r"{0}./cppExeFile".format(directoryName)
         subprocessOutput = subprocess.Popen(
             ExeCmd,

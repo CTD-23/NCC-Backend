@@ -42,6 +42,9 @@ INSTALLED_APPS = [
     'core',
     'postContest',
     'Judge',
+
+
+    'django_celery_results',
 ]
 
 MIDDLEWARE = [
@@ -157,3 +160,22 @@ SIMPLE_JWT = {
 # REST_FRAMEWORK = {
 #     'DEFAULT_FILTER_BACKENDS': ['django_filters.rest_framework.DjangoFilterBackend']
 # }
+
+
+
+# Celery Configuration
+# CELERY_BROKER_URL = 'redis://127.0.0.1:6379'  # Replace with your broker URL
+# CELERY_RESULT_BACKEND = 'redis://127.0.0.1:6379/0'  # Replace with your result backend URL
+
+
+
+# settings.py
+# Celery Configuration
+CELERY_BROKER_URL = 'redis://127.0.0.1:6379'  # Replace with your broker URL
+CELERY_RESULT_BACKEND = 'redis://127.0.0.1:6379'  # Replace with your result backend URL
+
+CELERY_RESULT_BACKEND = 'django-db' # Replace with your result backend URL
+CELERY_ACCEPT_CONTENT = ['application/json']
+CELERY_RESULT_SERIALIZER = 'json'
+CELERY_TASK_SERIALIZER = 'json'
+CELERY_TIMEZONE = 'Asia/Kolkata'

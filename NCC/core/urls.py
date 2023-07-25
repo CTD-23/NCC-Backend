@@ -7,6 +7,7 @@ router.register(r'questions', QuestionViewSet)
 router.register(r'rating', RatingViewSet)
 router.register(r'leaderboard', LeaderBoardViewSet,basename='leaderboard')
 router.register(r'submit', Submit,basename='submit')
+router.register(r'submit1', Submit,basename='submit1')
 router.register(r'submissions', GetSubmissions,basename='submissions')
 router.register(r'gettime', GetTime,basename='gettime')
 
