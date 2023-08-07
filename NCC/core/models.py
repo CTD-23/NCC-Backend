@@ -57,6 +57,7 @@ class Team(models.Model):
     teamId = models.CharField(max_length=10, primary_key=True, editable=False)
     user1 = models.OneToOneField(User, related_name="user1", on_delete=models.CASCADE)
     user2 = models.OneToOneField(User, related_name="user2", on_delete=models.CASCADE,blank=True,null=True)
+    isLogin = models.BooleanField(default=False)
     score = models.IntegerField(default=0)
     isJunior = models.BooleanField(default=True)
     lastUpdate = models.DateTimeField(default=datetime.datetime.now())

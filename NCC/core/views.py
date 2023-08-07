@@ -217,9 +217,9 @@ class Submit(TimeCheck,viewsets.GenericViewSet,mixins.CreateModelMixin):
 
     def create(self, request, *args, **kwargs):
         container = getContainer()
-        print("Allocated container ",container)
         if not container:
             return   Response({'msg':"Server is Busy"},status=status.HTTP_403_FORBIDDEN)
+        print("Allocated container ",container)
         
         data = request.data
         # print("=> Requested Data ",data)
@@ -292,7 +292,7 @@ class Submit(TimeCheck,viewsets.GenericViewSet,mixins.CreateModelMixin):
             else:
                 print("*******Valid but not saved*******")
                 codeStatus=  runCode(question,code,language,isSubmitted,container,input)
-                codeStatus = codeStatus.get()
+                # codeStatus = codeStatus.get()
                 deallocate(container)
 
                 serializer.validated_data['input'] = input
