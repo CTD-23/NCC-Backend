@@ -49,16 +49,27 @@ class LoginApi(generics.CreateAPIView):
         password = serializer.validated_data.get('password')
 
         user = authenticate(username=username, password=password)
-
-        if user is not None:
-            token = RefreshToken.for_user(user=user)
-            return Response({'token': str(token.access_token)}, status=status.HTTP_200_OK)
+        try:
+            team = Team.objects.get(Q(user1 = user) | Q(user2 = user))
+            if (team.isLogin):
+                return Response({'msg':'You are Already Logged in'}, status=status.HTTP_400_BAD_REQUEST)
+            
+            if user is not None:
+                token = RefreshToken.for_user(user=user)
+                team.isLogin = True
+                team.save()
+                return Response({'token': str(token.access_token)}, status=status.HTTP_200_OK)
+        except:
+            pass
+            
         
         
         # If user not present in local db
         # Try on main website API
         # request 
         print("Api Fetch")
+
+
         return Response(status=status.HTTP_404_NOT_FOUND)
         
 
@@ -84,14 +95,12 @@ def home(request):
     codeDict = {
         1:"Redirected After time end",
     }
-    a = homee.delay(5)
-    b = a.get()
     # add.delay(2, 3)
 
-    print(b)   
     # print(b)   
      
-    return HttpResponse(b.get('result'))
+    # return HttpResponse(b.get('result'))
+    return HttpResponse("sdfkjasdgfhg")
 
 
 class TimeCheck:
@@ -126,8 +135,10 @@ class TimeCheck:
 
         # Check if time is over
         if currentTime > endTime:
-            return redirect('/home/')  # Redirect to 'home' 
-            # return Response({"msg":"Time is Ended"},status=status.HTTP_403_FORBIDDEN) 
+            print("time is over")
+            # return redirect('/home/')  # Redirect to 'home' 
+            # return Response({"msg":"Time is Ended"},status=status.HTTP_401_UNAUTHORIZED) 
+            return JsonResponse({"msg":"Time Over"},status=status.HTTP_403_FORBIDDEN) 
 
         return super().dispatch(request, *args, **kwargs)
 
