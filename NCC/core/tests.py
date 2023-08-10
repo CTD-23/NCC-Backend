@@ -1,7 +1,7 @@
 import requests
 
 def make_api_request(question, input_data, is_submitted, language, code, bearer_token):
-    url = "http://127.0.0.1:8000/api/submit1/"
+    url = "http://20.198.81.8/api/submit/"
     
     headers = {
         "Authorization": f"Bearer {bearer_token}",
@@ -30,8 +30,8 @@ def make_api_request(question, input_data, is_submitted, language, code, bearer_
         return None
 
 # Example usage:
-bearer_token = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNjkwNDAxOTQzLCJpYXQiOjE2OTAzOTExNDMsImp0aSI6IjhjYTBjMmIxOGJiNDRjNTBhNGNlY2ExNmY5NWQxNGNlIiwidXNlcl9pZCI6MX0.jZnscdMxd6OT5Ows1gmiRY-Tgn9v9vxN-EiurZI-Eu4"
-question = "2611d"
+bearer_token = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNjkxNTI2ODI0LCJpYXQiOjE2OTE1MTYwMjQsImp0aSI6IjY4MTFkMzU0Y2ViZTQ4ZmM5MzhjNjMxOGY4YTY1MzMzIiwidXNlcl9pZCI6Nn0.7dL8nML5l2cSehW33nHPEEAshORR4BwhxrM-SZx06PE"
+question = "7f185"
 input_data = 7
 is_submitted = False
 language = "cpp"
@@ -62,6 +62,6 @@ int main() {
     return 0;
 }'''
 
-for i in range(20):
+for i in range(120):
     response = make_api_request(question, input_data, is_submitted, language, code, bearer_token)
     print(response)
