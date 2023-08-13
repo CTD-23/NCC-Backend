@@ -158,6 +158,18 @@ SIMPLE_JWT = {
     'REFRESH_TOKEN_LIFETIME': timedelta(days=1),
 }
 
+
+REST_FRAMEWORK = {
+    'EXCEPTION_HANDLER': 'core.custom_Throttle.custom_exception_handler',
+    'DEFAULT_THROTTLE_CLASSES': [
+        'rest_framework.throttling.ScopedRateThrottle',
+    ],
+    'DEFAULT_THROTTLE_RATES': {
+        'submit': '7/min',
+        'login': '1/min'
+    }
+}
+
 # REST_FRAMEWORK = {
 #     'DEFAULT_FILTER_BACKENDS': ['django_filters.rest_framework.DjangoFilterBackend']
 # }
@@ -184,8 +196,8 @@ CELERY_TIMEZONE = 'Asia/Kolkata'
 
 
 
-CORS_ORIGIN_ALLOW_ALL = False
-
-CORS_ORIGIN_WHITELIST = (
-#   'http://localhost:8000',
-)
+CORS_ORIGIN_ALLOW_ALL = True
+    
+CSRF_TRUSTED_ORIGINS = [
+    'http://localhost:8000',
+]

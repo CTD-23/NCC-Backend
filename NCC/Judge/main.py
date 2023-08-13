@@ -122,7 +122,7 @@ def run_cpp(containerId):
 
 def run_c(containerId):
     # cmd = "gcc " + f"{cCodeFile}" + f" -o {directoryName}/cExeFile"
-    cmd = f"sudo docker exec {CONTAINER_NAME}{containerId} sh -c 'timeout 2ss  g++ src/cCode.c -o src/cExeFile'"
+    cmd = f"sudo docker exec {CONTAINER_NAME}{containerId} sh -c 'timeout 2s  g++ src/cCode.c -o src/cExeFile'"
     subprocessCExe = subprocess.Popen(cmd, shell=True, stderr=errorFile)
     subprocessCExe.wait()
     if subprocessCExe.returncode == 0:
@@ -155,4 +155,4 @@ def run_c(containerId):
 # runC()
 
 
-run_python(4)
+run_cpp(5)

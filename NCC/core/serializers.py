@@ -27,17 +27,29 @@ class LoginSerializer(serializers.Serializer):
 
 class QuestionSerializer(serializers.ModelSerializer):
     solvedByTeam = serializers.SerializerMethodField()
-
+    accuracy = serializers.SerializerMethodField()
     class Meta:
         model = Question
         fields = "__all__"
-        extra_fields = ["solvedByTeam"]
-
+        extra_fields = ["solvedByTeam","accuracy"]
     def get_solvedByTeam(self, obj):
         user = self.context['request'].user
         team = Team.objects.get(Q(user1 = user) | Q(user2 = user))
 
         return Submission.objects.filter(team=team, question=obj, isCorrect=True).exists()
+        
+    def get_accuracy(self,obj):
+        submissions = Submission.objects.filter(question = obj)
+        
+        actual_sub = len(submissions)
+        right_sub=len(submissions.filter(isCorrect=True))
+        try:
+            accuracy = round((right_sub/actual_sub)*100)
+        except:
+            accuracy = 0
+
+        return accuracy
+        
 
 
 class RatingSerializer(serializers.ModelSerializer):

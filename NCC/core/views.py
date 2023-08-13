@@ -31,7 +31,8 @@ from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework_simplejwt.views import TokenObtainPairView
 from rest_framework_simplejwt.exceptions import TokenError , InvalidToken
 
-
+# throttle
+from rest_framework.throttling import UserRateThrottle, ScopedRateThrottle
 # Utils
 from .utils import getContainer,deallocate
 
@@ -40,6 +41,8 @@ from core.tasks import execute_code_task,homee
 
 class LoginApi(generics.CreateAPIView):
     serializer_class = LoginSerializer
+    
+    
     def post(self, request, format=None):
 
         serializer = self.get_serializer(data=request.data)
@@ -49,28 +52,31 @@ class LoginApi(generics.CreateAPIView):
         password = serializer.validated_data.get('password')
 
         user = authenticate(username=username, password=password)
-        try:
-            team = Team.objects.get(Q(user1 = user) | Q(user2 = user))
-            if (team.isLogin):
-                return Response({'msg':'You are Already Logged in'}, status=status.HTTP_400_BAD_REQUEST)
-            
-            if user is not None:
-                token = RefreshToken.for_user(user=user)
-                team.isLogin = True
-                team.save()
-                return Response({'token': str(token.access_token)}, status=status.HTTP_200_OK)
-        except:
-            pass
-            
+        if user is not None:
+            print("Authenticated but not in team")
+            try:
+                team = Team.objects.get(Q(user1 = user) | Q(user2 = user))
+                if (team.isLogin):
+                    return Response({'msg':'You are Already Logged in'}, status=status.HTTP_400_BAD_REQUEST)
+                
+                if user is not None:
+                    token = RefreshToken.for_user(user=user)
+                    team.isLogin = True
+                    team.save()
+                    return Response({'token': str(token.access_token)}, status=status.HTTP_200_OK)
+            except:
+                return Response({'msg':'Try to contact organiser'}, status=status.HTTP_404_NOT_FOUND)
+        else:
+            # If user not present in local db
+            # Try on main website API
+            # request 
+            print("Api Fetch")
+            pass              
         
         
-        # If user not present in local db
-        # Try on main website API
-        # request 
-        print("Api Fetch")
 
 
-        return Response(status=status.HTTP_404_NOT_FOUND)
+        return Response({'msg':'User not Registered'},status=status.HTTP_404_NOT_FOUND)
         
 
 class RegisterApi(viewsets.GenericViewSet,mixins.CreateModelMixin):
@@ -154,6 +160,8 @@ class QuestionViewSet(TimeCheck,viewsets.ReadOnlyModelViewSet):
     permission_classes = [IsAuthenticated]    
     renderer_classes = [JSONRenderer]
 
+    
+
     def get_queryset(self):
         queryset = super().get_queryset()
         user = self.request.user
@@ -185,6 +193,8 @@ class LeaderBoardViewSet(viewsets.ReadOnlyModelViewSet):
     serializer_class = LeaderBoardSerializer
     renderer_classes = [JSONRenderer]
     authentication_classes = [LeaderboardJwt]
+    
+    
     # permission_classes = [IsAuthenticated]
 
     def list(self, request, *args, **kwargs):
@@ -225,6 +235,8 @@ class Submit(TimeCheck,viewsets.GenericViewSet,mixins.CreateModelMixin):
     renderer_classes = [JSONRenderer]
     authentication_classes = [JWTAuthentication]
     permission_classes = [IsAuthenticated]
+    throttle_classes = [ScopedRateThrottle]
+    throttle_scope = 'submit'
 
     def create(self, request, *args, **kwargs):
         container = getContainer()
@@ -292,7 +304,10 @@ class Submit(TimeCheck,viewsets.GenericViewSet,mixins.CreateModelMixin):
                     serializer.validated_data['points'] = 0
                     serializer.validated_data['isCorrect'] = False
 
-                    lastSubmissionNumber = Submission.objects.filter(question=question,team=team).last().attemptedNumber
+                    try:
+                        lastSubmissionNumber = Submission.objects.filter(question=question,team=team).last().attemptedNumber
+                    except:
+                        lastSubmissionNumber = 0
                     serializer.validated_data['attemptedNumber'] = lastSubmissionNumber+1
                     serializer.validated_data['team'] = team
                     serializer.save()
@@ -319,6 +334,10 @@ class Submit(TimeCheck,viewsets.GenericViewSet,mixins.CreateModelMixin):
 
     def getMaxScore(self,question,team):
         questionQuery = Question.objects.get(questionId=question.questionId)
+        if (questionQuery.category != team.isJunior):
+            #if user is trying another category question
+            return 0
+        
         points = questionQuery.points
         maxPoints = questionQuery.maxPoints
         print("inside get score ",question , team)
@@ -329,8 +348,10 @@ class Submit(TimeCheck,viewsets.GenericViewSet,mixins.CreateModelMixin):
                 print("Right submission exits")
                 return 0
             else:
-                questionQuery.points -=1
-                questionQuery.save()
+                if (questionQuery.points-1 >= 10):
+                    questionQuery.points -=1
+                    questionQuery.save()
+
                 try:
                     submissionQuery = Submission.objects.filter(team = team ,question = question,isCorrect = False).exists()
                     if submissionQuery:
