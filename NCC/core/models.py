@@ -135,3 +135,11 @@ class Container(models.Model):
     status = models.BooleanField(default=False)
     count = models.IntegerField(default=0)
 
+# class Result(models.Model):
+#     teamId = models.CharField(max_length=10, primary_key=True, editable=False)
+#     isLogin = models.BooleanField(default=False)
+#     score = models.IntegerField(default=0)
+#     isJunior = models.BooleanField(default=True)
+#     questions_attempted = models.IntegerField(default=0)
+#     questions_solved = models.IntegerField(default=0)
+

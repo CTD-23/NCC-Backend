@@ -4,6 +4,7 @@ from django.db.models import Q
 
 from django.contrib.auth import authenticate
 from rest_framework import serializers
+# from .models import Result
 
 class LoginSerializer(serializers.Serializer):
     username = serializers.CharField(required=True)
@@ -171,3 +172,16 @@ class GetTimeSerializer(serializers.ModelSerializer):
     class Meta:
         model = ContestTime
         fields = "__all__"
+
+# class ResultSerializer(serializers.ModelSerializer):
+#     teamId =serializers.CharField(max_length=10, editable=False)
+#     isLogin = serializers.BooleanField(default=False)
+#     score = serializers.IntegerField(default=0)
+#     isJunior = serializers.BooleanField(default=True)
+#     questions_attempted = serializers.IntegerField(default=0)
+#     questions_solved = serializers.IntegerField(default=0)
+
+#     class Meta :
+#         model = Result
+#         field= ('teamId','score','questions_attempted','questions_solved')
+    
