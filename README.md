@@ -362,7 +362,7 @@
             "questionSolvedByUser": {
                 "Q1": 0,
                 "Q2": 0,
-                "Q3": 0
+               "Q3": 0
             },
             "rank": 1
         },
