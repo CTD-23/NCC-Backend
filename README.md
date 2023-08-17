@@ -353,7 +353,7 @@
         "rank": 2
     },
     "top6": [
-        {
+    {
             "teamId": "40dee",
             "user1": "testuser70",
             "user2": "testuser17",
