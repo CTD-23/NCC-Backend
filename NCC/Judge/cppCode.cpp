@@ -1,37 +1,36 @@
 #include<bits/stdc++.h>
+
 using namespace std;
-void solve(int &amount, vector<int>& coins,int sum,int index,int &ans){
-        if (index>=coins.size()){
-            if (sum == amount){
-                ans++;
-            }return ;
-        }
-        if (sum>= amount){
-            if (sum == amount){
-                ans ++;
-            }
-            return ;
-        }
+typedef long long ll;
+#define sz(s) (int)(s).size()
+#define all(s) s.begin(),s.end()
 
-        sum += coins[index];
-        solve(amount,coins,sum,index,ans);
-        sum -=coins[index];
-        solve(amount,coins,sum,index+1,ans);
+void Speed() {
+    ios_base::sync_with_stdio(false);
+    cin.tie(NULL);
+}
 
+void solve() {
+    int n ; cin >> n;
+    int a[n] ;
+    for(int i = 0 ; i < n ; i++) cin >> a[i];
+    sort(a , a + n);
+    vector<int> b , c;
+    int i = n - 1;
+    while(i >= 0 && a[i] == a[n - 1]) c.push_back(a[i--]);
+    while(i >= 0) b.push_back(a[i]);
+    if(!sz(b)) return cout << "-1\n" , void();
+    cout << sz(b) << ' ' << sz(c) << '\n';
+    for(auto it : b) cout << it << ' ' ; cout << '\n';
+    for(auto it : c) cout << it << ' ' ;  cout << '\n';
+}
+
+int main() {
+    Speed();
+    int tc = 1;
+    cin >> tc;
+    while (tc--) {
+        solve();
     }
-    void change(int amount, vector<int>& coins) {
-        int ans=0;
-        solve(amount,coins,0,0,ans);
-        cout<<ans<<endl;
-    }
-
-int main()
-{
-    // int amount = 500;
-    // vector<int>coins = {3,5,7,8,9,10,11};
-    int amount = 5;
-    vector<int>coins = {1,2,5};
-    change(amount,coins);
-    
     return 0;
 }

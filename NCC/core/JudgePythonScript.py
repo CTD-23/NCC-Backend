@@ -100,7 +100,7 @@ def run_cpp(containerId):
         subprocessOutput = subprocess.Popen(
             ExeCmd,
             shell=True,
-            # preexec_fn=setLimit(),
+            preexec_fn=setLimit(),
             # stdin=inputFile,
             stdout=outputFile,
             stderr=errorFile,

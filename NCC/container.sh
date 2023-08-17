@@ -1,7 +1,7 @@
 #!/bin/bash
 
-docker run -d -it --memory="512m" --name container1 -v $(pwd)/Judge:/src --security-opt seccomp=$(pwd)/seccomp/script.json python bash
-docker run -d -it --memory="512m" --name container2 -v $(pwd)/Judge:/src --security-opt seccomp=$(pwd)/seccomp/script.json python bash
+docker run -d -it --memory=256m --name container1 -v $(pwd)/Judge:/src --security-opt seccomp=$(pwd)/seccomp/script.json python bash
+docker run -d -it --memory=512m --name container2 -v $(pwd)/Judge:/src --security-opt seccomp=$(pwd)/seccomp/script.json python bash
 docker run -d -it --memory="512m" --name container3 -v $(pwd)/Judge:/src --security-opt seccomp=$(pwd)/seccomp/script.json python bash
 docker run -d -it --memory="512m" --name container4 -v $(pwd)/Judge:/src --security-opt seccomp=$(pwd)/seccomp/script.json python bash
 docker run -d -it --memory="512m" --name container5 -v $(pwd)/Judge:/src --security-opt seccomp=$(pwd)/seccomp/script.json python bash

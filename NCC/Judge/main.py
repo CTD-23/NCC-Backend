@@ -88,7 +88,7 @@ def run_python(containerId):
 def run_cpp(containerId):
     # cmd = r"g++ " + f"{cppCodeFile}" + f" -o {directoryName}/cppExeFile"  #3   #runnning
     print("=>Cpp code compilation start")
-    cmd = f"sudo docker exec {CONTAINER_NAME}{containerId} sh -c 'timeout 2s  g++ src/cppCode.cpp -o src/cppExeFile'"  #3
+    cmd = f"sudo docker exec {CONTAINER_NAME}{containerId} sh -c 'g++ src/cppCode.cpp -o src/cppExeFile'"  #3
     subprocessCppExe = subprocess.Popen(cmd, shell=True, stderr=errorFile)
     subprocessCppExe.wait()
     print("=>Cpp code compilation done")
@@ -100,7 +100,7 @@ def run_cpp(containerId):
         subprocessOutput = subprocess.Popen(
             ExeCmd,
             shell=True,
-            # preexec_fn=setLimit(),
+            preexec_fn=setLimit(),
             # stdin=inputFile,
             stdout=outputFile,
             stderr=errorFile,
@@ -122,7 +122,7 @@ def run_cpp(containerId):
 
 def run_c(containerId):
     # cmd = "gcc " + f"{cCodeFile}" + f" -o {directoryName}/cExeFile"
-    cmd = f"sudo docker exec {CONTAINER_NAME}{containerId} sh -c 'timeout 2s  g++ src/cCode.c -o src/cExeFile'"
+    cmd = f"sudo docker exec {CONTAINER_NAME}{containerId} sh -c 'g++ src/cCode.c -o src/cExeFile'"
     subprocessCExe = subprocess.Popen(cmd, shell=True, stderr=errorFile)
     subprocessCExe.wait()
     if subprocessCExe.returncode == 0:
@@ -155,4 +155,4 @@ def run_c(containerId):
 # runC()
 
 
-run_cpp(5)
+run_cpp(3)
