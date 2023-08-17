@@ -325,9 +325,98 @@
   - `password` (string): The password of the user.
 
 #### Example Response
-```
 {
-    "access": "ACCESS TOKEN"
+    "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNjkyMjg5MTkwLCJpYXQiOjE2OTIyNzgzOTAsImp0aSI6ImYwZjFhNjZmMzA0YTRmMzI5YTdjNzk5YjQ3ODlhY2VlIiwidXNlcl9pZCI6MX0.zdAFWXBPncVii8P_Nhejmto0lQ6YMmGSK33T2EDb8Bs",
+    "isJunior": true
 }
-```
 
+
+###
+- URL: `/api/result/`
+- Method: `GET`
+- Headers:
+  - `Authorization: Bearer <jwt_token>` (optional)
+
+#### Example Response
+{
+    "personalRank": {
+        "teamId": "919da",
+        "user1": "testuser1",
+        "user2": "prasad",
+        "score": 10,
+        "lastUpdate": "2023-08-13T19:46:24+05:30",
+        "questionSolvedByUser": {
+            "Q1": 0,
+            "Q2": 10,
+            "Q3": 0
+        },
+        "rank": 2
+    },
+    "top6": [
+        {
+            "teamId": "40dee",
+            "user1": "testuser70",
+            "user2": "testuser17",
+            "score": 35,
+            "lastUpdate": "2023-07-09T23:06:16+05:30",
+            "questionSolvedByUser": {
+                "Q1": 0,
+                "Q2": 0,
+                "Q3": 0
+            },
+            "rank": 1
+        },
+        {
+            "teamId": "919da",
+            "user1": "testuser1",
+            "user2": "prasad",
+            "score": 10,
+            "lastUpdate": "2023-08-13T19:46:24+05:30",
+            "questionSolvedByUser": {
+                "Q1": 0,
+                "Q2": 10,
+                "Q3": 0
+            },
+            "rank": 2
+        },
+        {
+            "teamId": "7ad06",
+            "user1": "testuser2",
+            "user2": "testuser3",
+            "score": 0,
+            "lastUpdate": "2023-07-07T21:39:30+05:30",
+            "questionSolvedByUser": {
+                "Q1": 0,
+                "Q2": 0,
+                "Q3": 0
+            },
+            "rank": 3
+        },
+        {
+            "teamId": "4e2e7",
+            "user1": "testuser12",
+            "user2": null,
+            "score": 0,
+            "lastUpdate": "2023-07-09T21:22:39.850265+05:30",
+            "questionSolvedByUser": {
+                "Q1": 0,
+                "Q2": 0,
+                "Q3": 0
+            },
+            "rank": 4
+        },
+        {
+            "teamId": "865b4",
+            "user1": "testuser76",
+            "user2": null,
+            "score": -8,
+            "lastUpdate": "2023-07-25T17:50:29.309952+05:30",
+            "questionSolvedByUser": {
+                "Q1": 0,
+                "Q2": 0,
+                "Q3": 0
+            },
+            "rank": 5
+        }
+    ]
+}
