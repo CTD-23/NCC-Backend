@@ -92,4 +92,16 @@ class Migration(migrations.Migration):
                 ('user', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to=settings.AUTH_USER_MODEL)),
             ],
         ),
+        # migrations.CreateModel(
+        #     name='Result'
+        #     fields=[
+        #         ('teamId', models.CharField(editable=False, max_length=10, primary_key=True, serialize=False)),
+        #         ('score', models.IntegerField(default=0)),
+        #         ('isJunior', models.BooleanField(default=True)),
+        #         ('category', models.CharField(choices=[('junior', 'junior'), ('senior', 'senior'), ('both', 'both')], max_length=10, null=True)),
+        #         ('questions_attempted', models.CharField(editable=False, max_length=10, primary_key=True, serialize=False)),
+        #         ('questions_solved', models.CharField(editable=False, max_length=10, primary_key=True, serialize=False)),
+        #     ],
+        # ),
+        
     ]

@@ -61,9 +61,14 @@ class LoginApi(generics.CreateAPIView):
                 
                 if user is not None:
                     token = RefreshToken.for_user(user=user)
+                    
                     team.isLogin = True
                     team.save()
-                    return Response({'token': str(token.access_token)}, status=status.HTTP_200_OK)
+                    data = {
+                        'token': str(token.access_token),
+                        'isJunior' : team.isJunior
+                    }
+                    return Response(data, status=status.HTTP_200_OK)
             except:
                 return Response({'msg':'Try to contact organiser'}, status=status.HTTP_404_NOT_FOUND)
         else:
@@ -459,4 +464,40 @@ class Submit1(TimeCheck,viewsets.GenericViewSet,mixins.CreateModelMixin):
             return Response({'msg':serializer.errors})
         
 
-   
+# class ResultAPIView(APIView):
+#     authentication_classes = [JWTAuthentication]
+#     permission_classes = [IsAuthenticated]
+#     def post(self, request,format=None ):
+#         user_result = Result.objects.get(user=request.user)
+#         serializer = ResultSerializer(user_result)
+#         return Response({ 'Result' : serializer })
+
+
+class ResultAPIView(viewsets.ReadOnlyModelViewSet):
+    queryset = Team.objects.all()
+    serializer_class = LeaderBoardSerializer
+    renderer_classes = [JSONRenderer]
+    authentication_classes = [JWTAuthentication]
+    permission_classes = [IsAuthenticated]
+    
+    
+    # permission_classes = [IsAuthenticated]
+
+    def list(self, request, *args, **kwargs):
+        user = self.request.user
+        team = Team.objects.get(Q(user1 = user) | Q(user2 = user))
+        if (team.isJunior):
+            top6query = Team.objects.filter(isJunior=True).order_by("-score", "lastUpdate")
+        else:
+            top6query = Team.objects.filter(isJunior=False).order_by("-score", "lastUpdate")
+        
+
+        top6query_serializer = LeaderBoardSerializer(top6query, many=True)
+
+        teamQuery = Team.objects.get(Q(user1 = user) | Q(user2 = user))
+        teamRank = IndividualLeaderBoardSerializer(teamQuery)
+        response_data = {
+            'personalRank':teamRank.data,
+            'top6': top6query_serializer.data[:6],
+        }
+        return Response(response_data,status=status.HTTP_200_OK)
