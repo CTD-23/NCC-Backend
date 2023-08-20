@@ -38,3 +38,8 @@ class ContainerAdmin(admin.ModelAdmin):
 admin.site.register(Container,ContainerAdmin)
 
 
+# class ResultAdmin(admin.ModelAdmin):
+#     list_display= ('teamId','score','questions_attempted','questions_solved')
+# admin.site.register(Result,ResultAdmin)
+
+
