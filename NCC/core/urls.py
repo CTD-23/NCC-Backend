@@ -23,5 +23,6 @@ urlpatterns = [
     path('api/', include(router.urls)),
     path('secret/api/', include(secretRouter.urls)),
     path('api/login/', LoginApi.as_view(),name="login"),
+     path('tinymce/',include('tinymce.urls')),
     
 ]

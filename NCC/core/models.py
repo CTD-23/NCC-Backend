@@ -2,6 +2,7 @@ from django.db import models
 from django.contrib.auth.models import User
 import uuid
 import datetime
+from tinymce import TinyMCE
 
 # Question model
 class Question(models.Model):
