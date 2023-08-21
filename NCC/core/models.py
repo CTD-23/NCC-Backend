@@ -2,7 +2,8 @@ from django.db import models
 from django.contrib.auth.models import User
 import uuid
 import datetime
-from tinymce import TinyMCE
+# from tinymce import TinyMCE
+from tinymce.models import HTMLField
 
 # Question model
 class Question(models.Model):
@@ -10,7 +11,7 @@ class Question(models.Model):
     questionNumber = models.IntegerField(unique=True)
 
     title =models.CharField(max_length=100)
-    description =models.TextField()
+    description = HTMLField()
     
     ipFormate = models.TextField(null=True,blank=True)
     opFormate = models.TextField(null=True,blank=True)
