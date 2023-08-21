@@ -209,6 +209,7 @@ TINYMCE_DEFAULT_CONFIG = {
     'custom_undo_redo_levels': 20,
     'selector': 'textarea',
     'theme': 'silver',
+    'content_css': '/static/css/tinymce-custom.css',  # Specify the path to your custom CSS file
     'plugins': '''
             textcolor save link image media preview codesample contextmenu
             table code lists fullscreen  insertdatetime  nonbreaking
@@ -230,3 +231,8 @@ TINYMCE_DEFAULT_CONFIG = {
     'menubar': True,
     'statusbar': True,
 }
+
+# TINYMCE_DEFAULT_CONFIG = {
+#     # ...
+#     'content_css': '/static/css/tinymce-custom.css',  # Specify the path to your custom CSS file
+# }

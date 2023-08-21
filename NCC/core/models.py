@@ -15,7 +15,7 @@ class Question(models.Model):
     
     ipFormate = models.TextField(null=True,blank=True)
     opFormate = models.TextField(null=True,blank=True)
-    constraints = models.CharField(max_length=50,null=True)
+    constraints = HTMLField()
     sampleIp = models.TextField(null=True,blank=True)
     sampleOp = models.TextField(null=True,blank=True)
     
