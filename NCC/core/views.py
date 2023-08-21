@@ -59,16 +59,16 @@ class LoginApi(generics.CreateAPIView):
                 if (team.isLogin):
                     return Response({'msg':'You are Already Logged in'}, status=status.HTTP_400_BAD_REQUEST)
                 
-                if user is not None:
-                    token = RefreshToken.for_user(user=user)
-                    
-                    team.isLogin = True
-                    team.save()
-                    data = {
-                        'token': str(token.access_token),
-                        'isJunior' : team.isJunior
-                    }
-                    return Response(data, status=status.HTTP_200_OK)
+                # if user is not None:
+                token = RefreshToken.for_user(user=user)
+                
+                team.isLogin = True
+                team.save()
+                data = {
+                    'token': str(token.access_token),
+                    'isJunior' : team.isJunior
+                }
+                return Response(data, status=status.HTTP_200_OK)
             except:
                 return Response({'msg':'Try to contact organiser'}, status=status.HTTP_404_NOT_FOUND)
         else:
@@ -81,7 +81,7 @@ class LoginApi(generics.CreateAPIView):
         
 
 
-        return Response({'msg':'User not Registered'},status=status.HTTP_404_NOT_FOUND)
+        return Response({'msg':'User not Found'},status=status.HTTP_404_NOT_FOUND)
         
 
 class RegisterApi(viewsets.GenericViewSet,mixins.CreateModelMixin):
