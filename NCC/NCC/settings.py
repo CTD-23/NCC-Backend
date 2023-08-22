@@ -23,8 +23,8 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = 'django-insecure-27^js#4ds%d(83o46o5&-4(h%!y+302rp8%emx-j*2p&$mmadq'
 
 # SECURITY WARNING: don't run with debug turned on in production!
-# DEBUG = True    #default
-DEBUG = False
+DEBUG = True    #default
+# DEBUG = False
 
 ALLOWED_HOSTS = ["*"]
 
@@ -207,8 +207,9 @@ CSRF_TRUSTED_ORIGINS = [
 TINYMCE_DEFAULT_CONFIG = {
     'cleanup_on_startup': True,
     'custom_undo_redo_levels': 20,
-    'selector': 'textarea',
+    # 'selector': 'textarea',
     'theme': 'silver',
+    # 'editor_deselector' : "mceNoEditor",
     'content_css': '/static/css/tinymce-custom.css',  # Specify the path to your custom CSS file
     'plugins': '''
             textcolor save link image media preview codesample contextmenu
@@ -231,6 +232,7 @@ TINYMCE_DEFAULT_CONFIG = {
     'menubar': True,
     'statusbar': True,
 }
+
 
 # TINYMCE_DEFAULT_CONFIG = {
 #     # ...

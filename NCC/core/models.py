@@ -3,7 +3,8 @@ from django.contrib.auth.models import User
 import uuid
 import datetime
 # from tinymce import TinyMCE
-from tinymce.models import HTMLField
+from tinymce import models as mc
+
 
 # Question model
 class Question(models.Model):
@@ -11,11 +12,15 @@ class Question(models.Model):
     questionNumber = models.IntegerField(unique=True)
 
     title =models.CharField(max_length=100)
-    description = HTMLField()
+    description = mc.HTMLField()
     
-    ipFormate = models.TextField(null=True,blank=True)
-    opFormate = models.TextField(null=True,blank=True)
-    constraints = HTMLField()
+    ipFormate = mc.HTMLField()
+    opFormate = mc.HTMLField()
+
+    constraints = mc.HTMLField(null=True)
+
+    inputOutputBlock = mc.HTMLField(null=True)
+
     sampleIp = models.TextField(null=True,blank=True)
     sampleOp = models.TextField(null=True,blank=True)
     
