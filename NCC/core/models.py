@@ -17,7 +17,7 @@ class Question(models.Model):
     ipFormate = mc.HTMLField()
     opFormate = mc.HTMLField()
 
-    constraints = mc.HTMLField(null=True)
+    constraints = mc.HTMLField(null=True,blank=True)
 
     inputOutputBlock = mc.HTMLField(null=True)
 
