@@ -39,6 +39,8 @@ from .utils import getContainer,deallocate
 # celery
 from core.tasks import execute_code_task,homee
 
+import requests
+
 class LoginApi(generics.CreateAPIView):
     serializer_class = LoginSerializer
     
@@ -75,12 +77,27 @@ class LoginApi(generics.CreateAPIView):
             # If user not present in local db
             # Try on main website API
             # request 
-            print("Api Fetch")
-            pass              
-        
-        
+            URL="https://api.ctd.credenz.in/api/verify/NCC/"
 
+            responce = requests.get(url = URL+username)
+            responceData = responce.json()
+            if (responceData.get("success")):
+                if (responceData.get("team_password") == password):
+                    user = User.objects.create(username = username,password = password)
+                    team = Team.objects.create(user1 = user)
 
+                    token = RefreshToken.for_user(user=user)
+                
+                    team.isLogin = True
+                    team.save()
+                    data = {
+                        'token': str(token.access_token),
+                        'isJunior' : team.isJunior
+                    }
+                    return Response(data, status=status.HTTP_200_OK)
+                else:
+                    return Response({'msg':'Incorrect Password'}, status=status.HTTP_401_UNAUTHORIZED)
+                        
         return Response({'msg':'User not Found'},status=status.HTTP_404_NOT_FOUND)
         
 
@@ -244,15 +261,17 @@ class Submit(TimeCheck,viewsets.GenericViewSet,mixins.CreateModelMixin):
     throttle_scope = 'submit'
 
     def create(self, request, *args, **kwargs):
-        container = getContainer()
-        if not container:
-            return   Response({'msg':"Server is Busy"},status=status.HTTP_403_FORBIDDEN)
-        print("Allocated container ",container)
         
         data = request.data
         # print("=> Requested Data ",data)
         serializer = SubmissionSerializer(data=data)
         if serializer.is_valid():
+
+            container = getContainer()
+            if not container:
+                return   Response({'msg':"Server is Busy"},status=status.HTTP_403_FORBIDDEN)
+            
+
             user = self.request.user
             userId = user.id
             team = Team.objects.get(Q(user1 = user) | Q(user2 = user))
@@ -496,8 +515,12 @@ class ResultAPIView(viewsets.ReadOnlyModelViewSet):
 
         teamQuery = Team.objects.get(Q(user1 = user) | Q(user2 = user))
         teamRank = IndividualLeaderBoardSerializer(teamQuery)
+        totalSubmissions = Submission.objects.filter(team=teamQuery)
+        rightSubmissions = totalSubmissions.filter(isCorrect  = True)
         response_data = {
             'personalRank':teamRank.data,
             'top6': top6query_serializer.data[:6],
+            'totalSub':len(totalSubmissions),
+            'rightSub':len(rightSubmissions)
         }
         return Response(response_data,status=status.HTTP_200_OK)

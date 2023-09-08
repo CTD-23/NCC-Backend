@@ -328,6 +328,15 @@
 			"action": "SCMP_ACT_ALLOW"
 		},
 		{
+			"names":[
+			 "ls",
+			 "pwd",
+			 "touch"
+			],
+			"action": "SCMP_ACT_ERRNO",
+			"args":[]
+		},
+		{
 			"names": [
 				"ptrace"
 			],
@@ -461,6 +470,7 @@
 				}
 			]
 		}
+		
 
 	]
 }

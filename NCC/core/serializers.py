@@ -112,12 +112,14 @@ class LeaderBoardSerializer(IndividualLeaderBoardSerializer):
 
 class SubmissionSerializer(serializers.ModelSerializer):
     isSubmitted  = serializers.BooleanField(default=False)
-    input = serializers.CharField(default=None)
+    # input = serializers.CharField()
+    input = serializers.CharField(required = False,default="")
     # question = serializers.CharField()
     class Meta:
         model = Submission
         fields = ['question','language','code','isSubmitted','input']
         extra_fields = ["team",'attemptedNumber','submissionTime','points','status','isCorrect']
+        optional_fields = ['input' ]
 
 class GetSubmissionSerializer(serializers.ModelSerializer): 
     class Meta:

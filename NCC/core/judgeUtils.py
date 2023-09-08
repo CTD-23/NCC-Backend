@@ -155,20 +155,20 @@ def runCode(question,code, language,isSubmitted,containerId,input=None):        
             individualTestcase["returnCode"] = rc
             individualTestcase["status"] = ErrorCodes[rc]
 
-            TC_Status[f"testcase{tc.testcaseNumber}"] = individualTestcase
+            TC_Status[f"TESTCASE{tc.testcaseNumber}"] = individualTestcase
             return TC_Status
         elif compare(output, tc):
             individualTestcase={}
             individualTestcase["returnCode"] = rc
             individualTestcase["status"] = ErrorCodes[rc]
             
-            TC_Status[f"testcase{tc.testcaseNumber}"] = individualTestcase
+            TC_Status[f"TESTCASE{tc.testcaseNumber}"] = individualTestcase
    
         else:
             individualTestcase={}
             individualTestcase["returnCode"] = 69
             individualTestcase["status"] = ErrorCodes[69]
-            TC_Status[f"testcase{tc.testcaseNumber}"] = individualTestcase
+            TC_Status[f"TESTCASE{tc.testcaseNumber}"] = individualTestcase
 
         # clearAll()
         

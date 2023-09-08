@@ -8,7 +8,7 @@ def getContainer():
         containerId.count+=1
         containerId.save()
         return containerId.containerId
-    return getContainer()
+    return False
 
 def deallocate(containerid):
     container = Container.objects.get(containerId=containerid)

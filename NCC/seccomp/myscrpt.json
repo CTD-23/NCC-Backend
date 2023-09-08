@@ -1,0 +1,20 @@
+{
+    "defaultAction":"SCMP_ACT_ALLOW",
+    "syscalls":[
+        {
+            "name":"pwd",
+            "action":"SCMP_ACT_ERRNO",
+            "args":[]
+        },
+        {
+            "name":"touch",
+            "action":"SCMP_ACT_ERRNO",
+            "args":[]
+        },
+        {
+            "name":"mkdir",
+            "action":"SCMP_ACT_ERRNO",
+            "args":[]
+        }
+    ]
+}
